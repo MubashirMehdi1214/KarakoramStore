@@ -271,13 +271,13 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
 }
 .section-title a:hover { color: var(--accent); }
 
-/* ===== Book grid ===== */
-.book-grid {
+/* ===== Product grid ===== */
+.product-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 35px 28px;
 }
-.book-card {
+.product-card {
   background: #fff;
   border-radius: var(--radius);
   overflow: hidden;
@@ -287,8 +287,8 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   flex-direction: column;
   text-align: center;
 }
-.book-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
-.book-card a.thumb {
+.product-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+.product-card a.thumb {
   display: block;
   position: relative;
   background: linear-gradient(135deg, #f6e9d0, #fff);
@@ -296,7 +296,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   aspect-ratio: 3/4;
   overflow: hidden;
 }
-.book-card .cover {
+.product-card .cover {
   position: absolute;
   inset: 26px 18px;
   display: flex;
@@ -304,7 +304,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   justify-content: center;
   perspective: 600px;
 }
-.book-card .cover .book {
+.product-card .cover .product-tile {
   width: 70%;
   height: 90%;
   background: linear-gradient(135deg, var(--accent), #2a747c);
@@ -315,15 +315,15 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   overflow: hidden;
   transition: transform .3s ease;
 }
-.book-card:hover .cover .book { transform: rotateY(-6deg); }
-.book-card .cover .book::before {
+.product-card:hover .cover .product-tile { transform: rotateY(-6deg); }
+.product-card .cover .product-tile::before {
   content: '';
   position: absolute;
   left: 0; top: 0; bottom: 0;
   width: 8px;
   background: linear-gradient(90deg, rgba(0,0,0,.25), rgba(0,0,0,0));
 }
-.book-card .cover .book .title-on-cover {
+.product-card .cover .product-tile .title-on-cover {
   position: absolute;
   inset: 12px 10px;
   color: #fff;
@@ -337,7 +337,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   line-height: 1.25;
   text-transform: uppercase;
 }
-.book-card .cover .book .ribbon {
+.product-card .cover .product-tile .ribbon {
   position: absolute;
   bottom: 8px;
   left: 8px;
@@ -347,20 +347,20 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
 }
 
 /* Variations of cover color by category */
-.book-card.cover-english .cover .book { background: linear-gradient(135deg, #1E565C, #2a747c); }
-.book-card.cover-french .cover .book { background: linear-gradient(135deg, #213a8a, #3b5fbf); }
-.book-card.cover-german .cover .book { background: linear-gradient(135deg, #6b2424, #a14444); }
-.book-card.cover-spanish .cover .book { background: linear-gradient(135deg, #b25a17, #d6802a); }
-.book-card.cover-vocabulary .cover .book { background: linear-gradient(135deg, #4a3266, #6f4ea0); }
-.book-card.cover-grammar .cover .book { background: linear-gradient(135deg, #1f6b3a, #2f9a55); }
-.book-card.cover-kids .cover .book { background: linear-gradient(135deg, #c44b7d, #e07caa); }
-.book-card.cover-self .cover .book { background: linear-gradient(135deg, #aa7619, #dba23a); }
-.book-card.cover-business .cover .book { background: linear-gradient(135deg, #1c2e4a, #2f4a78); }
-.book-card.cover-literature .cover .book { background: linear-gradient(135deg, #7a2424, #b04545); }
-.book-card.cover-traditional .cover .book { background: linear-gradient(135deg, #5c3d1e, #8b5e2a); }
-.book-card.cover-health .cover .book { background: linear-gradient(135deg, #2d5016, #4a7c2c); }
+.product-card.cover-english .cover .product-tile { background: linear-gradient(135deg, #1E565C, #2a747c); }
+.product-card.cover-french .cover .product-tile { background: linear-gradient(135deg, #213a8a, #3b5fbf); }
+.product-card.cover-german .cover .product-tile { background: linear-gradient(135deg, #6b2424, #a14444); }
+.product-card.cover-spanish .cover .product-tile { background: linear-gradient(135deg, #b25a17, #d6802a); }
+.product-card.cover-vocabulary .cover .product-tile { background: linear-gradient(135deg, #4a3266, #6f4ea0); }
+.product-card.cover-grammar .cover .product-tile { background: linear-gradient(135deg, #1f6b3a, #2f9a55); }
+.product-card.cover-kids .cover .product-tile { background: linear-gradient(135deg, #c44b7d, #e07caa); }
+.product-card.cover-self .cover .product-tile { background: linear-gradient(135deg, #aa7619, #dba23a); }
+.product-card.cover-business .cover .product-tile { background: linear-gradient(135deg, #1c2e4a, #2f4a78); }
+.product-card.cover-literature .cover .product-tile { background: linear-gradient(135deg, #7a2424, #b04545); }
+.product-card.cover-traditional .cover .product-tile { background: linear-gradient(135deg, #5c3d1e, #8b5e2a); }
+.product-card.cover-health .cover .product-tile { background: linear-gradient(135deg, #2d5016, #4a7c2c); }
 
-.book-card .product-price {
+.product-card .product-price {
   display: block;
   font-size: 16px;
   font-weight: 800;
@@ -374,14 +374,14 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   margin-bottom: 12px;
 }
 
-.book-card .info {
+.product-card .info {
   padding: 18px 16px 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   flex: 1;
 }
-.book-card h3 {
+.product-card h3 {
   font-size: 15px;
   font-weight: 700;
   line-height: 1.35;
@@ -392,44 +392,44 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.book-card h3 a { color: inherit; }
-.book-card h3 a:hover { color: var(--accent); }
-.book-card .read-more {
+.product-card h3 a { color: inherit; }
+.product-card h3 a:hover { color: var(--accent); }
+.product-card .read-more {
   display: inline-block;
   color: var(--accent);
   font-weight: 700;
   font-size: 14px;
   margin-top: auto;
 }
-.book-card .read-more::after {
+.product-card .read-more::after {
   content: ' \00BB';
 }
 
-/* ===== Single book page ===== */
-.book-single {
+/* ===== Single product page ===== */
+.product-single {
   max-width: 860px;
   margin: 0 auto;
   padding: 60px 20px;
 }
-.book-single h1 {
+.product-single h1 {
   font-size: clamp(1.8rem, 3.6vw, 2.4rem);
   color: var(--contrast);
   margin-bottom: 8px;
   line-height: 1.2;
 }
-.book-single .breadcrumb {
+.product-single .breadcrumb {
   font-size: 14px;
   color: var(--contrast-4);
   margin-bottom: 28px;
 }
-.book-single .breadcrumb a { color: var(--accent); }
-.book-single .meta {
+.product-single .breadcrumb a { color: var(--accent); }
+.product-single .meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 28px;
 }
-.book-single .meta .tag {
+.product-single .meta .tag {
   display: inline-block;
   background: var(--base);
   color: var(--contrast-2);
@@ -438,18 +438,18 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   font-size: 12px;
   font-weight: 600;
 }
-.book-single .article p {
+.product-single .article p {
   margin-bottom: 18px;
   font-size: 16.5px;
   line-height: 1.85;
   color: var(--contrast-3);
 }
-.book-single .article h2 {
+.product-single .article h2 {
   font-size: 1.6rem;
   margin: 36px 0 16px;
   color: var(--contrast);
 }
-.book-single .download-block {
+.product-single .order-block {
   background: var(--base);
   border-left: 4px solid var(--accent);
   padding: 26px;
@@ -457,7 +457,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   margin: 36px 0;
   text-align: center;
 }
-.book-single .download-block .btn {
+.product-single .order-block .btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -747,7 +747,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
 
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
-  .book-grid { grid-template-columns: repeat(3, 1fr); }
+  .product-grid { grid-template-columns: repeat(3, 1fr); }
   .site-footer .footer-inner { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -779,7 +779,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   }
   .main-nav ul li.has-dropdown.is-open ul { display: flex; }
   .main-nav ul li.has-dropdown > a::after { float: right; }
-  .book-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 16px; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 24px 16px; }
   .hero { padding: 60px 20px; }
   .contact-grid { grid-template-columns: 1fr; }
 }
@@ -789,6 +789,6 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   .site-header .logo-text strong { font-size: 19px; }
   .hero .search-box { flex-direction: column; padding: 12px; border-radius: var(--radius); }
   .hero .search-box button { width: 100%; }
-  .book-card h3 { font-size: 14px; min-height: 54px; }
+  .product-card h3 { font-size: 14px; min-height: 54px; }
   .section { padding: 40px 16px; }
 }

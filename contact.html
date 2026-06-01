@@ -41,18 +41,18 @@
 
   <div id="site-footer-host"></div>
 
-  <script src="js/books.js"></script>
+  <script src="js/products.js"></script>
   <script src="js/main.js"></script>
   <script>
   (function(){
     var productId = new URLSearchParams(window.location.search).get('product');
-    if(!productId || typeof BOOKS === 'undefined') return;
-    var book = BOOKS.find(function(b){ return b.id === productId; });
-    if(!book) return;
+    if(!productId || typeof PRODUCTS === 'undefined') return;
+    var product = PRODUCTS.find(function(p){ return p.id === productId; });
+    if(!product) return;
     var subject = document.getElementById('subjectInput');
     var message = document.getElementById('messageInput');
-    if(subject) subject.value = 'Order: ' + book.title;
-    if(message) message.value = 'Hi, I would like to order: ' + book.title + (book.price ? ' (' + book.price + ')' : '') + '.\n\nMy city: \nQuantity: \n';
+    if(subject) subject.value = 'Order: ' + product.title;
+    if(message) message.value = 'Hi, I would like to order: ' + product.title + (product.price ? ' (' + product.price + ')' : '') + '.\n\nMy city: \nQuantity: \n';
     document.getElementById('contactForm').addEventListener('submit', function(e){
       e.preventDefault();
       this.querySelector('button').textContent = 'Thanks! We will reply soon.';

@@ -1,5 +1,5 @@
 /* Product catalog for KarakoramStore */
-const BOOKS = [
+const PRODUCTS = [
   {
     id: "gilgiti-cap",
     slug: "gilgiti-cap",
@@ -47,5 +47,5 @@ const CATEGORIES = [
 ];
 
 if (typeof module !== "undefined") {
-  module.exports = { BOOKS, CATEGORIES };
+  module.exports = { PRODUCTS, CATEGORIES };
 }
