@@ -6,10 +6,10 @@ const PRODUCTS = [
     title: "Gilgiti Cap",
     categories: ["traditional-wear"],
     cover: "traditional",
-    image: "images/GilgitiCap.png",
+    image: "images/Gilgitcaps.jpg",
     excerpt: "Authentic hand-crafted Gilgiti cap — available in Elders (adult) and Kids sizes. Order 1, 2, 3 or 5 caps with Cash on Delivery.",
     sizes: [
-      { id: "elders", label: "Elders (Adult)", image: "images/GilgitiCap.png" },
+      { id: "elders", label: "Elders (Adult)", image: "images/Gilgitcaps.jpg" },
       { id: "kids", label: "Kids", image: "images/GilgitcapKids.jpeg" }
     ],
     variants: [
