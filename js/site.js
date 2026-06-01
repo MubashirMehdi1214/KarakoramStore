@@ -1,10 +1,10 @@
-/* Site-wide settings (contact from LifeWithBooks) */
+/* Site-wide settings */
 const SITE = {
   name: "KarakoramStore",
-  phone: "+92 318 0699050",
-  phoneTel: "+923180699050",
-  whatsapp: "923180699050",
-  email: "info@lifewithbooks.com",
+  phone: "+92 311 5189291",
+  phoneTel: "+923115189291",
+  whatsapp: "923115189291",
+  email: "munashirmehdi@gmail.com",
   hours: "Mon–Fri, 9am–6pm",
   location: "Gilgit-Baltistan, Pakistan",
   codLabel: "Cash on Delivery",
@@ -15,7 +15,7 @@ const SITE = {
   orderApiUrl: "", // paste Google Apps Script Web App URL for dashboard — see SETUP-ORDERS.md
   adminPassword: "karakoram2026",
 
-  easypaisaAccount: "03XX XXXXXXX", // your Easypaisa number — shown to customers
+  easypaisaAccount: "03115189291",
   jazzcashAccount: "03419485217"
 };
 

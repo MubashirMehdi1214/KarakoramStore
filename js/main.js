@@ -17,10 +17,12 @@ function escapeHtml(s) {
 
 function siteContact() {
   return typeof SITE !== 'undefined' ? SITE : {
-    phone: '+92 318 0699050',
-    phoneTel: '+923180699050',
-    whatsapp: '923180699050',
-    email: 'info@lifewithbooks.com',
+    phone: '+92 311 5189291',
+    phoneTel: '+923115189291',
+    whatsapp: '923115189291',
+    email: 'munashirmehdi@gmail.com',
+    easypaisaAccount: '03115189291',
+    jazzcashAccount: '03419485217',
     hours: 'Mon–Fri, 9am–6pm',
     location: 'Gilgit-Baltistan, Pakistan',
     codLabel: 'Cash on Delivery',
@@ -543,6 +545,10 @@ function initContact() {
   if (phoneDisplay) phoneDisplay.innerHTML = '<a href="tel:' + escapeHtml(s.phoneTel) + '">' + escapeHtml(s.phone) + '</a>';
   if (emailDisplay) emailDisplay.innerHTML = '<a href="mailto:' + escapeHtml(s.email) + '">' + escapeHtml(s.email) + '</a>';
   if (hoursDisplay) hoursDisplay.textContent = s.hours;
+  const epDisplay = $('#contact-easypaisa');
+  const jcDisplay = $('#contact-jazzcash');
+  if (epDisplay && s.easypaisaAccount) epDisplay.textContent = s.easypaisaAccount;
+  if (jcDisplay && s.jazzcashAccount) jcDisplay.textContent = s.jazzcashAccount;
 
   function fillVariants(product) {
     if (!variantSelect || !product || !product.variants) return;
