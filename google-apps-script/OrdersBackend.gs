@@ -1,32 +1,25 @@
 /**
  * KarakoramStore — Order backend (Google Apps Script)
+ * Dashboard at admin.html + emails to munashirmehdi@gmail.com
  *
- * SETUP (one time, ~10 minutes):
- * 1. Go to https://sheets.google.com → New spreadsheet → name it "KarakoramStore Orders"
- * 2. Copy the Sheet ID from the URL: docs.google.com/spreadsheets/d/SHEET_ID_HERE/edit
- * 3. Go to https://script.google.com → New project → paste this entire file
- * 4. Set SHEET_ID, NOTIFY_EMAIL, ADMIN_PASSWORD below
- * 5. Run setupSheet() once from the editor (authorize when asked)
- * 6. Deploy → New deployment → Web app
- *    - Execute as: Me
- *    - Who has access: Anyone
- * 7. Copy the Web App URL into js/site.js → orderApiUrl
+ * SETUP: see SETUP-ORDERS.md
  */
 
 const SHEET_ID = 'PASTE_YOUR_GOOGLE_SHEET_ID_HERE';
 const NOTIFY_EMAIL = 'munashirmehdi@gmail.com';
-const ADMIN_PASSWORD = 'karakoram2026'; // change this to your own secret password
+const ADMIN_PASSWORD = 'karakoram2026';
 
 function setupSheet() {
   const ss = SpreadsheetApp.openById(SHEET_ID);
   let sheet = ss.getSheetByName('Orders');
   if (!sheet) sheet = ss.insertSheet('Orders');
+  const headers = [
+    'Date', 'Order ID', 'Product', 'Option', 'Price (PKR)', 'Payment', 'Transaction ID',
+    'Customer Name', 'Phone', 'City / Address', 'Email', 'Notes', 'Screenshot', 'Status'
+  ];
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow([
-      'Date', 'Order ID', 'Product', 'Option', 'Price (PKR)', 'Payment',
-      'Customer Name', 'Phone', 'City / Address', 'Email', 'Notes', 'Status'
-    ]);
-    sheet.getRange(1, 1, 1, 12).setFontWeight('bold').setBackground('#1E565C').setFontColor('#ffffff');
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#1E565C').setFontColor('#ffffff');
   }
 }
 
@@ -35,48 +28,65 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Orders') || setupSheetAndGet();
     const orderId = 'KS-' + Utilities.formatDate(new Date(), 'Asia/Karachi', 'yyyyMMdd-HHmmss');
-    const row = [
+
+    sheet.appendRow([
       new Date(),
       orderId,
       data.product || '',
       data.option || '',
       data.price || '',
       data.payment || 'Cash on Delivery',
+      data.transactionId || '',
       data.name || '',
       data.phone || '',
       data.city || '',
       data.email || '',
       data.notes || '',
+      data.screenshotName ? 'Yes: ' + data.screenshotName : '',
       'New'
-    ];
-    sheet.appendRow(row);
+    ]);
 
-    const body =
-      'New Cash on Delivery order on KarakoramStore\n\n' +
+    let body =
+      'New order on KarakoramStore\n\n' +
       'Order ID: ' + orderId + '\n' +
       'Product: ' + (data.product || '') + '\n' +
       'Option: ' + (data.option || '') + '\n' +
       'Price: ' + (data.price || '') + '\n' +
-      'Payment: ' + (data.payment || 'COD') + '\n\n' +
-      'Customer: ' + (data.name || '') + '\n' +
+      'Payment: ' + (data.payment || '') + '\n';
+    if (data.transactionId) body += 'Transaction ID: ' + data.transactionId + '\n';
+    body +=
+      '\nCustomer: ' + (data.name || '') + '\n' +
       'Phone: ' + (data.phone || '') + '\n' +
-      'Address: ' + (data.city || '') + '\n' +
-      (data.email ? 'Email: ' + data.email + '\n' : '') +
-      (data.notes ? '\nNotes:\n' + data.notes : '') + '\n\n' +
-      'Open your dashboard:\n' +
-      'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit\n';
+      'Address: ' + (data.city || '') + '\n';
+    if (data.email) body += 'Email: ' + data.email + '\n';
+    if (data.notes) body += '\nNotes:\n' + data.notes + '\n';
+    body += '\nDashboard: https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit\n';
+
+    const emailOptions = { name: 'KarakoramStore Orders' };
+    if (data.screenshotData && data.screenshotName) {
+      const blob = dataURLToBlob(data.screenshotData, data.screenshotName);
+      emailOptions.attachments = [blob];
+      body += '\n(Payment screenshot attached)\n';
+    }
 
     GmailApp.sendEmail(
       NOTIFY_EMAIL,
-      '[KarakoramStore] New COD Order — ' + orderId,
+      '[KarakoramStore] New Order — ' + orderId,
       body,
-      { name: 'KarakoramStore Orders' }
+      emailOptions
     );
 
     return jsonOut({ ok: true, orderId: orderId });
   } catch (err) {
     return jsonOut({ ok: false, error: String(err) });
   }
+}
+
+function dataURLToBlob(dataUrl, filename) {
+  const parts = dataUrl.split(',');
+  const mime = parts[0].match(/:(.*?);/)[1];
+  const bytes = Utilities.base64Decode(parts[1]);
+  return Utilities.newBlob(bytes, mime, filename);
 }
 
 function doGet(e) {

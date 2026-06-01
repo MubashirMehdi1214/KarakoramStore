@@ -1,12 +1,19 @@
 # KarakoramStore — Email + Orders Dashboard Setup
 
-When a customer submits a **COD order**, you will receive:
+When a customer submits an order, you receive:
 
-1. **Email** at **munashirmehdi@gmail.com**
-2. **Google Sheet** row (your spreadsheet dashboard)
-3. **Website dashboard** at `admin.html` (password protected)
+1. **Email** at **munashirmehdi@gmail.com** (works automatically via FormSubmit — no setup required)
+2. **Google Sheet + web dashboard** (optional — complete Steps 1–3 below for `admin.html`)
 
-Vercel only hosts the website files — you need this **one-time free Google setup** (about 10 minutes).
+### FormSubmit first time only
+
+The **first** order email may ask you to **activate** FormSubmit on munashirmehdi@gmail.com — click the link in that email once. After that, every order arrives in your inbox.
+
+---
+
+## Dashboard (optional — Google Sheet + admin.html)
+
+Vercel only hosts website files. For the **orders table** at `admin.html`, complete this one-time Google setup (~10 minutes).
 
 ---
 

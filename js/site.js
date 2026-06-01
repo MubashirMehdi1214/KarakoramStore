@@ -12,9 +12,11 @@ const SITE = {
 
   /* Order notifications — see SETUP-ORDERS.md */
   orderNotifyEmail: "munashirmehdi@gmail.com",
-  orderApiUrl: "", // paste Google Apps Script Web App URL after setup
-  web3formsAccessKey: "", // optional: from https://web3forms.com (quick email-only)
-  adminPassword: "karakoram2026" // must match ADMIN_PASSWORD in Google Apps Script
+  orderApiUrl: "", // paste Google Apps Script Web App URL for dashboard — see SETUP-ORDERS.md
+  adminPassword: "karakoram2026",
+
+  easypaisaAccount: "03XX XXXXXXX", // your Easypaisa number — shown to customers
+  jazzcashAccount: "03XX XXXXXXX"  // your JazzCash number
 };
 
 if (typeof module !== "undefined") {

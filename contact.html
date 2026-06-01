@@ -12,15 +12,15 @@
 
   <section class="page-hero-compact">
     <div class="max-wrap">
-      <span class="pill pill-cod">Cash on Delivery</span>
+      <span class="pill pill-cod">Order online</span>
       <h1>Place Your Order</h1>
-      <p>Fill in the form or call / WhatsApp us. Pay cash when your order is delivered.</p>
+      <p>COD, Easypaisa or JazzCash. Order is emailed to the store — we confirm by call or WhatsApp.</p>
     </div>
   </section>
 
   <main class="page-content order-page">
     <div class="contact-grid">
-      <form class="contact-form order-form" id="contactForm">
+      <form class="contact-form order-form" id="contactForm" enctype="multipart/form-data">
         <h3 class="form-heading">Order details</h3>
 
         <label for="order-product">Product</label>
@@ -38,10 +38,27 @@
         <fieldset class="payment-fieldset">
           <legend>Payment method</legend>
           <label class="payment-option">
-            <input type="radio" name="payment" id="payment-cod" value="cod" checked>
+            <input type="radio" name="payment" value="cod" checked>
             <span><strong>Cash on Delivery (COD)</strong> — Pay when you receive your order</span>
           </label>
+          <label class="payment-option">
+            <input type="radio" name="payment" value="easypaisa">
+            <span><strong>Easypaisa</strong> — Pay now, then enter transaction ID + screenshot</span>
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="payment" value="jazzcash">
+            <span><strong>JazzCash</strong> — Pay now, then enter transaction ID + screenshot</span>
+          </label>
         </fieldset>
+
+        <div id="prepaid-fields" class="prepaid-fields" hidden>
+          <p class="prepaid-instructions" id="prepaid-instructions"></p>
+          <label for="order-txn">Transaction ID <span class="req">*</span></label>
+          <input type="text" id="order-txn" name="transaction_id" placeholder="e.g. 12345678901">
+          <label for="order-screenshot">Payment screenshot <span class="req">*</span></label>
+          <input type="file" id="order-screenshot" name="screenshot" accept="image/*">
+          <p class="field-hint">Upload a clear screenshot of your successful payment.</p>
+        </div>
 
         <label for="order-name">Your name</label>
         <input type="text" id="order-name" name="name" placeholder="Full name" required>
@@ -52,18 +69,15 @@
         <label for="order-city">City &amp; delivery address</label>
         <input type="text" id="order-city" name="city" placeholder="City and full address" required>
 
-        <label for="order-email">Email (optional)</label>
-        <input type="email" id="order-email" name="email" placeholder="Email address">
+        <label for="order-email">Your email (optional)</label>
+        <input type="email" id="order-email" name="email" placeholder="For order confirmation">
 
-        <label for="subjectInput">Subject</label>
-        <input type="text" name="subject" id="subjectInput" placeholder="Order subject">
+        <label for="messageInput">Notes (optional)</label>
+        <textarea name="message" id="messageInput" placeholder="Any special instructions" rows="4"></textarea>
 
-        <label for="messageInput">Message</label>
-        <textarea name="message" id="messageInput" placeholder="Your order details" required rows="8"></textarea>
-
-        <button type="submit" class="btn">Submit COD Order</button>
+        <button type="submit" class="btn" id="submit-order-btn">Submit Order</button>
         <div id="order-status" aria-live="polite"></div>
-        <a class="btn outline btn-whatsapp-block" id="contact-wa-btn" href="#" target="_blank" rel="noopener">Or order on WhatsApp</a>
+        <a class="btn outline btn-whatsapp-block" id="contact-wa-btn" href="#" target="_blank" rel="noopener">Questions? WhatsApp us</a>
       </form>
 
       <aside class="contact-info-block">
@@ -72,13 +86,14 @@
         <p><strong>Email:</strong> <span id="contact-page-email">info@lifewithbooks.com</span></p>
         <p><strong>Hours:</strong> <span id="contact-page-hours">Mon–Fri, 9am–6pm</span></p>
         <hr>
-        <h3>Cash on Delivery</h3>
-        <p>No advance payment. We call to confirm your order, then ship. You pay the courier in cash when the parcel arrives.</p>
+        <h3>Payment options</h3>
+        <p><strong>COD</strong> — pay courier on delivery</p>
+        <p><strong>Easypaisa / JazzCash</strong> — pay first, upload txn ID + screenshot</p>
         <hr>
-        <h3>Product options</h3>
-        <p><strong>Gilgiti Cap:</strong> Elders PKR 1,200/cap · Kids PKR 1,000/cap (1–5 pcs)</p>
+        <h3>Products</h3>
+        <p><strong>Gilgiti Cap:</strong> Elders PKR 1,200/cap · Kids PKR 1,000/cap</p>
         <p><strong>Shilajit:</strong> 10g · 20g · 30g</p>
-        <p class="order-note"><strong>After submit:</strong> Order is saved and emailed to the store. We call/WhatsApp you to confirm COD delivery.</p>
+        <p class="order-note"><strong>After submit:</strong> Order is emailed to <strong>munashirmehdi@gmail.com</strong>. We contact you to confirm.</p>
       </aside>
     </div>
   </main>
@@ -89,12 +104,5 @@
   <script src="js/products.js"></script>
   <script src="js/orders-api.js"></script>
   <script src="js/main.js"></script>
-  <script>
-  (function(){
-    if (typeof SITE === 'undefined') return;
-    var wa = document.getElementById('contact-wa-btn');
-    if (wa) wa.href = 'https://wa.me/' + SITE.whatsapp + '?text=' + encodeURIComponent('Hi, I want to place a Cash on Delivery order from KarakoramStore.');
-  })();
-  </script>
 </body>
 </html>

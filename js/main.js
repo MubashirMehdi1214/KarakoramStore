@@ -371,7 +371,9 @@ function initHome() {
   if (trustPhone) trustPhone.textContent = s.phone;
 
   const heroWa = $('#hero-whatsapp');
-  if (heroWa) heroWa.href = whatsappUrl('Hi, I want to order from KarakoramStore with Cash on Delivery.');
+  if (heroWa) heroWa.href = whatsappUrl('Hi, I have a question about KarakoramStore.');
+  const contactWa = $('#contact-wa-btn');
+  if (contactWa) contactWa.href = whatsappUrl('Hi, I have a question about my KarakoramStore order.');
 
   const featuredHost = $('#featured-products');
   if (featuredHost && typeof PRODUCTS !== 'undefined') {
@@ -529,9 +531,11 @@ function initContact() {
 
   const productSelect = $('#order-product');
   const variantSelect = $('#order-variant');
-  const paymentCod = $('#payment-cod');
   const messageInput = $('#messageInput');
-  const subjectInput = $('#subjectInput');
+  const prepaidFields = $('#prepaid-fields');
+  const prepaidInstructions = $('#prepaid-instructions');
+  const txnInput = $('#order-txn');
+  const screenshotInput = $('#order-screenshot');
   const phoneDisplay = $('#contact-page-phone');
   const emailDisplay = $('#contact-page-email');
   const hoursDisplay = $('#contact-page-hours');
@@ -547,45 +551,52 @@ function initContact() {
     }).join('');
   }
 
-  function updateMessage() {
-    const pid = productSelect ? productSelect.value : productId;
-    const product = PRODUCTS.find(function(p) { return p.id === pid; });
-    if (!product) return;
-    const vid = variantSelect ? variantSelect.value : variantId;
-    const variant = getVariant(product, vid);
-    if (subjectInput) subjectInput.value = 'COD Order: ' + product.title;
-    if (messageInput) {
-      messageInput.value =
-        'Hi, I would like to place a Cash on Delivery order:\n\n' +
-        'Product: ' + product.title + '\n' +
-        'Option: ' + getVariantLabel(product, variant) + '\n' +
-        'Price: ' + formatPKR(variant.price) + '\n' +
-        'Payment: Cash on Delivery\n\n' +
-        'Full name:\n' +
-        'Phone:\n' +
-        'City / Address:\n' +
-        'Notes:\n';
+  function getSelectedPayment() {
+    const checked = document.querySelector('input[name="payment"]:checked');
+    return checked ? checked.value : 'cod';
+  }
+
+  function updatePaymentUI() {
+    const method = getSelectedPayment();
+    const isPrepaid = method === 'easypaisa' || method === 'jazzcash';
+    if (prepaidFields) prepaidFields.hidden = !isPrepaid;
+    if (txnInput) txnInput.required = isPrepaid;
+    if (screenshotInput) screenshotInput.required = isPrepaid;
+    if (prepaidInstructions && isPrepaid) {
+      const acct = method === 'easypaisa' ? s.easypaisaAccount : s.jazzcashAccount;
+      const label = method === 'easypaisa' ? 'Easypaisa' : 'JazzCash';
+      prepaidInstructions.innerHTML = 'Send payment to <strong>' + escapeHtml(acct) + '</strong> (' + label + '), then enter your <strong>Transaction ID</strong> and upload a <strong>screenshot</strong> below.';
+    }
+    const submitBtn = $('#submit-order-btn');
+    if (submitBtn) {
+      submitBtn.textContent = isPrepaid ? 'Submit Order (Prepaid)' : 'Submit Order (COD)';
     }
   }
+
+  $$('input[name="payment"]').forEach(function(radio) {
+    radio.addEventListener('change', updatePaymentUI);
+  });
+  updatePaymentUI();
 
   if (productSelect) {
     productSelect.addEventListener('change', function() {
       const product = PRODUCTS.find(function(p) { return p.id === productSelect.value; });
       fillVariants(product);
-      updateMessage();
     });
   }
-  if (variantSelect) variantSelect.addEventListener('change', updateMessage);
 
   if (productSelect && productId) {
     productSelect.value = productId;
     const product = PRODUCTS.find(function(p) { return p.id === productId; });
     fillVariants(product);
     if (variantSelect && variantId) variantSelect.value = variantId;
-    updateMessage();
   }
 
-  if (paymentCod) paymentCod.checked = payment === 'cod';
+  if (payment === 'easypaisa' || payment === 'jazzcash') {
+    const payRadio = document.querySelector('input[name="payment"][value="' + payment + '"]');
+    if (payRadio) payRadio.checked = true;
+    updatePaymentUI();
+  }
 
   const form = $('#contactForm');
   if (form) {
@@ -609,9 +620,25 @@ function initContact() {
         return;
       }
 
+      const paymentMethod = getSelectedPayment();
+      if ((paymentMethod === 'easypaisa' || paymentMethod === 'jazzcash')) {
+        const txn = txnInput ? txnInput.value.trim() : '';
+        const file = screenshotInput && screenshotInput.files && screenshotInput.files[0];
+        if (!txn) {
+          alert('Please enter your Transaction ID.');
+          return;
+        }
+        if (!file) {
+          alert('Please upload your payment screenshot.');
+          return;
+        }
+      }
+
       const payload = buildOrderPayload({
         productId: pid,
         variantId: vid,
+        paymentMethod: paymentMethod,
+        transactionId: txnInput ? txnInput.value.trim() : '',
         name: name,
         phone: phone,
         city: city,
@@ -619,42 +646,34 @@ function initContact() {
         notes: messageInput ? messageInput.value.trim() : ''
       });
 
-      const btn = form.querySelector('button[type=submit]');
+      const screenshotFile = screenshotInput && screenshotInput.files && screenshotInput.files[0]
+        ? screenshotInput.files[0] : null;
+
+      const btn = $('#submit-order-btn');
       const statusEl = $('#order-status');
       if (btn) { btn.disabled = true; btn.textContent = 'Sending order…'; }
       if (statusEl) statusEl.textContent = '';
 
-      submitOrder(payload).then(function(result) {
+      submitOrder(payload, screenshotFile).then(function(result) {
         if (result && result.ok) {
+          var msg = 'Order sent! Check your email confirmation from us soon. We will call/WhatsApp you.';
+          if (result.via === 'formsubmit') {
+            msg += ' A copy was emailed to <strong>munashirmehdi@gmail.com</strong>.';
+          }
           if (statusEl) {
-            statusEl.innerHTML = '<span class="order-success">Order received! We will call/WhatsApp you to confirm COD delivery.' +
-              (result.orderId ? ' Ref: <strong>' + escapeHtml(result.orderId) + '</strong>' : '') + '</span>';
+            statusEl.innerHTML = '<span class="order-success">' + msg +
+              (result.orderId && result.orderId !== 'email' ? ' Ref: <strong>' + escapeHtml(result.orderId) + '</strong>' : '') + '</span>';
           }
           form.reset();
-          if (paymentCod) paymentCod.checked = true;
-        } else if (result && result.fallback) {
-          if (statusEl) {
-            statusEl.innerHTML = '<span class="order-warn">Opening WhatsApp — complete your order there.</span>';
-          }
-          const lines = [
-            '*New COD Order — KarakoramStore*', '',
-            'Product: ' + payload.product,
-            'Option: ' + payload.option,
-            'Price: ' + payload.price,
-            'Payment: Cash on Delivery', '',
-            'Name: ' + name, 'Phone: ' + phone, 'City / Address: ' + city
-          ];
-          if (email) lines.push('Email: ' + email);
-          if (payload.notes) lines.push('', 'Notes:', payload.notes);
-          window.open(whatsappUrl(lines.join('\n')), '_blank');
+          document.querySelector('input[name="payment"][value="cod"]').checked = true;
+          updatePaymentUI();
         } else {
           if (statusEl) {
-            statusEl.innerHTML = '<span class="order-error">Could not save online. Please use WhatsApp below.</span>';
+            statusEl.innerHTML = '<span class="order-error">Could not send order: ' + escapeHtml(result.error || 'Please try again or WhatsApp us below.') + '</span>';
           }
-          window.open(whatsappUrl(formatOrderEmailBody(payload)), '_blank');
         }
       }).finally(function() {
-        if (btn) { btn.disabled = false; btn.textContent = 'Submit COD Order'; }
+        if (btn) { btn.disabled = false; updatePaymentUI(); }
       });
     });
   }
