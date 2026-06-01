@@ -1,4 +1,4 @@
-/* Send orders — Google Sheet (dashboard) + FormSubmit email */
+/* Send orders — Web3Forms / Google Apps Script / FormSubmit (redirect) */
 
 function buildOrderPayload(form) {
   const product = PRODUCTS.find(function(p) { return p.id === form.productId; });
@@ -53,77 +53,39 @@ function appendHiddenField(form, name, value) {
   form.appendChild(input);
 }
 
-/* FormSubmit /ajax/ is blocked by CORS in browsers — use a real form POST into a hidden iframe */
-function submitViaFormSubmit(payload, screenshotFile) {
+function submitViaWeb3Forms(payload, screenshotFile) {
   const s = typeof SITE !== 'undefined' ? SITE : {};
-  const notifyEmail = s.orderNotifyEmail || 'munashirmehdi@gmail.com';
+  const key = s.web3formsAccessKey;
+  if (!key) return Promise.resolve(null);
 
-  return new Promise(function(resolve) {
-    const iframeName = 'formsubmit-iframe';
-    let iframe = document.getElementById(iframeName);
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.id = iframeName;
-      iframe.name = iframeName;
-      iframe.title = 'Order submit';
-      iframe.setAttribute('aria-hidden', 'true');
-      iframe.style.cssText = 'display:none;width:0;height:0;border:0';
-      document.body.appendChild(iframe);
-    }
+  const body = {
+    access_key: key,
+    subject: 'New Order — KarakoramStore — ' + payload.payment,
+    from_name: payload.name,
+    email: payload.email || 'order@karakoramstore.local',
+    phone: payload.phone,
+    message: formatOrderEmailBody(payload)
+  };
 
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'https://formsubmit.co/' + notifyEmail;
-    form.enctype = 'multipart/form-data';
-    form.target = iframeName;
-    form.acceptCharset = 'UTF-8';
-    form.style.display = 'none';
+  const send = function() {
+    return fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(body)
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) return { ok: true, orderId: 'email', via: 'web3forms' };
+        return { ok: false, error: data.message || 'Email send failed' };
+      });
+  };
 
-    appendHiddenField(form, 'name', payload.name);
-    appendHiddenField(form, 'email', payload.email || 'order@karakoramstore.local');
-    appendHiddenField(form, 'phone', payload.phone);
-    appendHiddenField(form, '_subject', 'New Order — KarakoramStore — ' + payload.payment);
-    appendHiddenField(form, 'message', formatOrderEmailBody(payload));
-    appendHiddenField(form, '_template', 'table');
-    appendHiddenField(form, '_captcha', 'false');
+  if (!screenshotFile) return send();
 
-    if (screenshotFile) {
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.name = 'attachment';
-      try {
-        const dt = new DataTransfer();
-        dt.items.add(screenshotFile);
-        fileInput.files = dt.files;
-        form.appendChild(fileInput);
-      } catch (err) {
-        form.remove();
-        resolve({ ok: false, error: 'Could not attach screenshot. Try a smaller image or WhatsApp us.' });
-        return;
-      }
-    }
-
-    document.body.appendChild(form);
-
-    let settled = false;
-    function finish(ok, error) {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timer);
-      iframe.onload = null;
-      form.remove();
-      if (ok) resolve({ ok: true, orderId: 'email', via: 'formsubmit' });
-      else resolve({ ok: false, error: error || 'Email send failed' });
-    }
-
-    iframe.onload = function() { finish(true); };
-    const timer = window.setTimeout(function() { finish(true); }, 3500);
-
-    try {
-      form.submit();
-    } catch (err) {
-      finish(false, String(err));
-    }
+  return fileToBase64(screenshotFile).then(function(dataUrl) {
+    body.attachment = dataUrl;
+    body.attachment_name = screenshotFile.name || 'payment-proof.jpg';
+    return send();
   });
 }
 
@@ -169,16 +131,62 @@ function fileToBase64(file) {
   });
 }
 
+/* Full-page POST — FormSubmit only delivers mail reliably this way (not iframe/ajax) */
+function redirectViaFormSubmit(payload, screenshotFile) {
+  const s = typeof SITE !== 'undefined' ? SITE : {};
+  const notifyEmail = s.orderNotifyEmail || 'munashirmehdi@gmail.com';
+  const returnUrl = window.location.href.split('?')[0] + '?order=sent';
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = 'https://formsubmit.co/' + notifyEmail;
+  form.enctype = 'multipart/form-data';
+  form.acceptCharset = 'UTF-8';
+
+  appendHiddenField(form, 'name', payload.name);
+  appendHiddenField(form, 'email', payload.email || 'order@karakoramstore.local');
+  appendHiddenField(form, 'phone', payload.phone);
+  appendHiddenField(form, '_subject', 'New Order — KarakoramStore — ' + payload.payment);
+  appendHiddenField(form, 'message', formatOrderEmailBody(payload));
+  appendHiddenField(form, '_template', 'table');
+  appendHiddenField(form, '_captcha', 'false');
+  appendHiddenField(form, '_next', returnUrl);
+
+  if (screenshotFile) {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.name = 'attachment';
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(screenshotFile);
+      fileInput.files = dt.files;
+      form.appendChild(fileInput);
+    } catch (err) {
+      return Promise.resolve({ ok: false, error: 'Could not attach screenshot. Try WhatsApp us.' });
+    }
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+  return Promise.resolve({ ok: true, redirecting: true, via: 'formsubmit' });
+}
+
 function submitOrder(payload, screenshotFile) {
   return submitViaGoogleScript(payload, screenshotFile).then(function(googleResult) {
     if (googleResult && googleResult.ok) return googleResult;
-    return submitViaFormSubmit(payload, screenshotFile);
+    return submitViaWeb3Forms(payload, screenshotFile).then(function(w3Result) {
+      if (w3Result && w3Result.ok) return w3Result;
+      if (w3Result && w3Result.ok === false) return w3Result;
+      return redirectViaFormSubmit(payload, screenshotFile);
+    });
   });
 }
 
 function fetchOrders(adminPassword) {
   const s = typeof SITE !== 'undefined' ? SITE : {};
-  if (!s.orderApiUrl) return Promise.reject(new Error('Order API not configured. Add orderApiUrl in js/site.js — see SETUP-ORDERS.md'));
+  if (!s.orderApiUrl) {
+    return Promise.reject(new Error('Order API not configured. Add orderApiUrl in js/site.js — see SETUP-ORDERS.md'));
+  }
   const url = s.orderApiUrl + '?action=orders&password=' + encodeURIComponent(adminPassword);
   return fetch(url).then(function(res) { return res.json(); });
 }

@@ -607,6 +607,17 @@ function initContact() {
     updatePaymentUI();
   }
 
+  const statusElOnLoad = $('#order-status');
+  if (getParam('order') === 'sent' && statusElOnLoad) {
+    statusElOnLoad.innerHTML =
+      '<span class="order-success"><strong>Order sent!</strong> We will call or WhatsApp you to confirm.' +
+      ' Check <strong>munashirmehdi@gmail.com</strong> (and spam) for the order email.' +
+      ' First time only: if FormSubmit emailed you an activation link, click it so future orders arrive.</span>';
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }
+
   const form = $('#contactForm');
   if (form) {
     form.addEventListener('submit', function(e) {
@@ -664,26 +675,39 @@ function initContact() {
       if (statusEl) statusEl.textContent = '';
 
       submitOrder(payload, screenshotFile).then(function(result) {
+        if (result && result.redirecting) {
+          if (statusEl) statusEl.textContent = 'Sending your order — please wait…';
+          return;
+        }
         if (result && result.ok) {
           var msg = 'Order sent! We will call or WhatsApp you to confirm.';
-          if (result.via === 'formsubmit') {
+          if (result.via === 'web3forms' || result.via === 'google') {
             msg += ' A copy was emailed to <strong>munashirmehdi@gmail.com</strong>.';
-            msg += ' If this is your first order, check that inbox for a one-time FormSubmit activation link.';
+          }
+          var waExtra = '';
+          if (typeof formatOrderEmailBody === 'function') {
+            const waText = encodeURIComponent(formatOrderEmailBody(payload));
+            waExtra = ' <a class="btn outline" style="margin-top:12px;display:inline-block" href="https://wa.me/' +
+              escapeHtml(s.whatsapp) + '?text=' + waText + '" target="_blank" rel="noopener">Also send order on WhatsApp</a>';
           }
           if (statusEl) {
             statusEl.innerHTML = '<span class="order-success">' + msg +
-              (result.orderId && result.orderId !== 'email' ? ' Ref: <strong>' + escapeHtml(result.orderId) + '</strong>' : '') + '</span>';
+              (result.orderId && result.orderId !== 'email' ? ' Ref: <strong>' + escapeHtml(result.orderId) + '</strong>' : '') +
+              '</span>' + waExtra;
           }
           form.reset();
           document.querySelector('input[name="payment"][value="cod"]').checked = true;
           updatePaymentUI();
-        } else {
+        } else if (result) {
           if (statusEl) {
             statusEl.innerHTML = '<span class="order-error">Could not send order: ' + escapeHtml(result.error || 'Please try again or WhatsApp us below.') + '</span>';
           }
         }
       }).finally(function() {
-        if (btn) { btn.disabled = false; updatePaymentUI(); }
+        if (btn && !document.hidden) {
+          btn.disabled = false;
+          updatePaymentUI();
+        }
       });
     });
   }

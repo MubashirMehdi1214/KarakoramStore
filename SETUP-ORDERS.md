@@ -1,13 +1,29 @@
 # KarakoramStore — Email + Orders Dashboard Setup
 
-When a customer submits an order, you receive:
+When a customer submits an order, you should receive email at **munashirmehdi@gmail.com**.
 
-1. **Email** at **munashirmehdi@gmail.com** (works automatically via FormSubmit — no setup required)
-2. **Google Sheet + web dashboard** (optional — complete Steps 1–3 below for `admin.html`)
+## Recommended: Web3Forms (5 minutes — reliable email)
 
-### FormSubmit first time only
+1. Open [https://web3forms.com](https://web3forms.com) → create access key with **munashirmehdi@gmail.com**
+2. Copy your **Access Key**
+3. In `js/site.js` set:
+   ```javascript
+   web3formsAccessKey: "paste-your-key-here",
+   ```
+4. Save → push to GitHub. Orders email you instantly (no activation step).
 
-The **first** order email may ask you to **activate** FormSubmit on munashirmehdi@gmail.com — click the link in that email once. After that, every order arrives in your inbox.
+---
+
+## Fallback: FormSubmit (if Web3Forms key is empty)
+
+The site redirects through FormSubmit to send mail. **You must activate once:**
+
+1. Submit a test order on the live site
+2. Check **munashirmehdi@gmail.com** and **Spam** for email from **FormSubmit**
+3. Click **Activate Form** in that email
+4. Submit another test — order emails should arrive
+
+Until activation, the website may say “Order sent” but **no order email** is delivered.
 
 ---
 

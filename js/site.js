@@ -12,6 +12,7 @@ const SITE = {
 
   /* Order notifications — see SETUP-ORDERS.md */
   orderNotifyEmail: "munashirmehdi@gmail.com",
+  web3formsAccessKey: "", // get free key at https://web3forms.com — reliable email (recommended)
   orderApiUrl: "", // paste Google Apps Script Web App URL for dashboard — see SETUP-ORDERS.md
   adminPassword: "karakoram2026",
 
