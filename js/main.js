@@ -119,19 +119,29 @@ function injectFooter() {
 }
 
 /* ---------- Card renderer ---------- */
+function productThumbHTML(product) {
+  if (product.image) {
+    return `<img class="product-image" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" loading="lazy" width="400" height="400">`;
+  }
+  return `
+    <div class="cover">
+      <div class="product-tile">
+        <span class="title-on-cover">${escapeHtml(product.title)}</span>
+        <span class="ribbon"></span>
+      </div>
+    </div>
+  `;
+}
+
 function productCardHTML(product) {
   const priceTag = product.price
     ? `<span class="product-price">${escapeHtml(product.price)}</span>`
     : '';
+  const hasImage = !!product.image;
   return `
-    <article class="product-card cover-${escapeHtml(product.cover || 'traditional')}">
+    <article class="product-card cover-${escapeHtml(product.cover || 'traditional')}${hasImage ? ' has-image' : ''}">
       <a class="thumb" href="product.html?id=${encodeURIComponent(product.id)}" aria-label="${escapeHtml(product.title)}">
-        <div class="cover">
-          <div class="product-tile">
-            <span class="title-on-cover">${escapeHtml(product.title)}</span>
-            <span class="ribbon"></span>
-          </div>
-        </div>
+        ${productThumbHTML(product)}
       </a>
       <div class="info">
         <h3><a href="product.html?id=${encodeURIComponent(product.id)}">${escapeHtml(product.title)}</a></h3>
@@ -267,12 +277,20 @@ function initProductDetail() {
     ? '<p class="product-price-detail">' + escapeHtml(product.price) + '</p>'
     : '';
 
+  const imageHTML = product.image
+    ? `<div class="product-hero-image"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}"></div>`
+    : '';
+
+  if (product.image) wrap.classList.add('has-image');
+
   wrap.innerHTML = `
     <div class="breadcrumb">
       <a href="index.html">Home</a> &raquo;
       <a href="category.html?cat=${primaryCat}">${catObj ? escapeHtml(catObj.label) : 'Products'}</a> &raquo;
       <span>${escapeHtml(product.title)}</span>
     </div>
+
+    ${imageHTML}
 
     <h1>${escapeHtml(product.title)}</h1>
     ${priceHTML}

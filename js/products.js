@@ -6,6 +6,7 @@ const PRODUCTS = [
     title: "Gilgiti Cap",
     categories: ["traditional-wear"],
     cover: "traditional",
+    image: "images/GilgitiCap.png",
     price: "PKR 1,500",
     excerpt: "Authentic hand-crafted Gilgiti cap from the Karakoram region — warm, durable and a timeless symbol of mountain heritage.",
     description: [
@@ -24,6 +25,7 @@ const PRODUCTS = [
     title: "Asli Aftabi Shilajit",
     categories: ["health-wellness"],
     cover: "health",
+    image: "images/Shilajit.png",
     price: "PKR 2,500",
     excerpt: "Pure Himalayan shilajit resin from the Karakoram — traditionally valued for vitality, stamina and natural wellness support.",
     description: [
