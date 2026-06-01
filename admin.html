@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Orders Dashboard - KarakoramStore</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body data-page="admin" id="top">
+
+  <div class="admin-wrap">
+    <header class="admin-header">
+      <h1>KarakoramStore <span>Orders</span></h1>
+      <p>COD orders · Email: <strong>munashirmehdi@gmail.com</strong></p>
+    </header>
+
+    <section id="login-panel" class="admin-card">
+      <h2>Staff login</h2>
+      <p>Enter your dashboard password (set in Google Apps Script).</p>
+      <label for="admin-pass">Password</label>
+      <input type="password" id="admin-pass" placeholder="Dashboard password" autocomplete="current-password">
+      <button type="button" class="btn" id="admin-login-btn">View orders</button>
+      <p id="login-error" class="admin-error" hidden></p>
+      <hr>
+      <p class="admin-hint">First time? See <strong>SETUP-ORDERS.md</strong> in your GitHub repo (10 min setup for email + dashboard).</p>
+    </section>
+
+    <section id="dashboard-panel" class="admin-card" hidden>
+      <div class="admin-toolbar">
+        <h2>Recent orders</h2>
+        <button type="button" class="btn outline" id="refresh-orders">Refresh</button>
+        <button type="button" class="btn outline" id="logout-btn">Log out</button>
+      </div>
+      <p id="orders-count" class="orders-count"></p>
+      <div class="table-wrap">
+        <table class="orders-table" id="orders-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>ID</th>
+              <th>Product</th>
+              <th>Option</th>
+              <th>Price</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+      </div>
+      <p class="admin-hint">Orders are also saved in your Google Sheet and emailed to you on each new order.</p>
+    </section>
+  </div>
+
+  <script src="js/site.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/orders-api.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

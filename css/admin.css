@@ -1,0 +1,75 @@
+.admin-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+.admin-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.admin-header h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2rem;
+}
+.admin-header h1 span { color: var(--accent); font-weight: 600; }
+.admin-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.admin-card label { display: block; font-weight: 700; margin: 12px 0 6px; }
+.admin-card input[type="password"] {
+  width: 100%;
+  max-width: 320px;
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 15px;
+}
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.admin-toolbar h2 { flex: 1; margin: 0; font-size: 1.25rem; }
+.admin-error { color: #c62828; font-size: 14px; margin-top: 12px; }
+.admin-hint { font-size: 14px; color: var(--contrast-3); margin-top: 16px; }
+.orders-count { font-weight: 700; color: var(--accent); margin-bottom: 12px; }
+.table-wrap { overflow-x: auto; }
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.orders-table th,
+.orders-table td {
+  border: 1px solid #eee;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.orders-table th {
+  background: var(--contrast);
+  color: #fff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.orders-table tr:nth-child(even) { background: #fafafa; }
+.status-badge {
+  display: inline-block;
+  background: #e8f5e9;
+  color: #1b5e20;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.order-success { display: block; color: #1b5e20; background: #e8f5e9; padding: 14px; border-radius: var(--radius); margin-top: 12px; }
+.order-warn { display: block; color: #e65100; background: #fff3e0; padding: 14px; border-radius: var(--radius); margin-top: 12px; }
+.order-error { display: block; color: #c62828; background: #ffebee; padding: 14px; border-radius: var(--radius); margin-top: 12px; }

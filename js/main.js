@@ -218,7 +218,7 @@ function injectFooter() {
           </div>
         </div>
       </div>
-      <div class="footer-bottom">&copy; ${new Date().getFullYear()} KarakoramStore &middot; All Rights Reserved</div>
+      <div class="footer-bottom">&copy; ${new Date().getFullYear()} KarakoramStore &middot; All Rights Reserved &middot; <a href="admin.html" style="color:#9fa89f;">Orders dashboard</a></div>
     </footer>
     <a href="#top" class="back-to-top" id="backToTop" aria-label="Back to top">&#8593;</a>
   `;
@@ -609,30 +609,53 @@ function initContact() {
         return;
       }
 
-      const lines = [
-        '*New COD Order — KarakoramStore*',
-        '',
-        'Product: ' + product.title,
-        'Option: ' + getVariantLabel(product, variant),
-        'Price: ' + formatPKR(variant.price),
-        'Payment: Cash on Delivery',
-        '',
-        'Name: ' + name,
-        'Phone: ' + phone,
-        'City / Address: ' + city
-      ];
-      if (email) lines.push('Email: ' + email);
-      const extra = messageInput && messageInput.value.trim();
-      if (extra) {
-        lines.push('', 'Notes:', extra);
-      }
+      const payload = buildOrderPayload({
+        productId: pid,
+        variantId: vid,
+        name: name,
+        phone: phone,
+        city: city,
+        email: email,
+        notes: messageInput ? messageInput.value.trim() : ''
+      });
 
-      window.open(whatsappUrl(lines.join('\n')), '_blank');
       const btn = form.querySelector('button[type=submit]');
-      if (btn) btn.textContent = 'Sent! Check WhatsApp';
-      setTimeout(function() {
-        if (btn) btn.textContent = 'Submit COD Order';
-      }, 4000);
+      const statusEl = $('#order-status');
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending order…'; }
+      if (statusEl) statusEl.textContent = '';
+
+      submitOrder(payload).then(function(result) {
+        if (result && result.ok) {
+          if (statusEl) {
+            statusEl.innerHTML = '<span class="order-success">Order received! We will call/WhatsApp you to confirm COD delivery.' +
+              (result.orderId ? ' Ref: <strong>' + escapeHtml(result.orderId) + '</strong>' : '') + '</span>';
+          }
+          form.reset();
+          if (paymentCod) paymentCod.checked = true;
+        } else if (result && result.fallback) {
+          if (statusEl) {
+            statusEl.innerHTML = '<span class="order-warn">Opening WhatsApp — complete your order there.</span>';
+          }
+          const lines = [
+            '*New COD Order — KarakoramStore*', '',
+            'Product: ' + payload.product,
+            'Option: ' + payload.option,
+            'Price: ' + payload.price,
+            'Payment: Cash on Delivery', '',
+            'Name: ' + name, 'Phone: ' + phone, 'City / Address: ' + city
+          ];
+          if (email) lines.push('Email: ' + email);
+          if (payload.notes) lines.push('', 'Notes:', payload.notes);
+          window.open(whatsappUrl(lines.join('\n')), '_blank');
+        } else {
+          if (statusEl) {
+            statusEl.innerHTML = '<span class="order-error">Could not save online. Please use WhatsApp below.</span>';
+          }
+          window.open(whatsappUrl(formatOrderEmailBody(payload)), '_blank');
+        }
+      }).finally(function() {
+        if (btn) { btn.disabled = false; btn.textContent = 'Submit COD Order'; }
+      });
     });
   }
 }

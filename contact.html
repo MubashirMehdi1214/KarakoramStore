@@ -62,6 +62,7 @@
         <textarea name="message" id="messageInput" placeholder="Your order details" required rows="8"></textarea>
 
         <button type="submit" class="btn">Submit COD Order</button>
+        <div id="order-status" aria-live="polite"></div>
         <a class="btn outline btn-whatsapp-block" id="contact-wa-btn" href="#" target="_blank" rel="noopener">Or order on WhatsApp</a>
       </form>
 
@@ -77,7 +78,7 @@
         <h3>Product options</h3>
         <p><strong>Gilgiti Cap:</strong> Elders PKR 1,200/cap · Kids PKR 1,000/cap (1–5 pcs)</p>
         <p><strong>Shilajit:</strong> 10g · 20g · 30g</p>
-        <p class="order-note"><strong>After submit:</strong> WhatsApp opens with your order — we reply to confirm COD delivery.</p>
+        <p class="order-note"><strong>After submit:</strong> Order is saved and emailed to the store. We call/WhatsApp you to confirm COD delivery.</p>
       </aside>
     </div>
   </main>
@@ -86,6 +87,7 @@
 
   <script src="js/site.js"></script>
   <script src="js/products.js"></script>
+  <script src="js/orders-api.js"></script>
   <script src="js/main.js"></script>
   <script>
   (function(){
