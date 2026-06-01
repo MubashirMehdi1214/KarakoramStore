@@ -16,7 +16,7 @@ const SITE = {
   adminPassword: "karakoram2026",
 
   easypaisaAccount: "03XX XXXXXXX", // your Easypaisa number — shown to customers
-  jazzcashAccount: "03XX XXXXXXX"  // your JazzCash number
+  jazzcashAccount: "03419485217"
 };
 
 if (typeof module !== "undefined") {
