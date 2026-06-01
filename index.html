@@ -3,37 +3,116 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KarakoramStore - Authentic Products from Gilgit-Baltistan</title>
-  <meta name="description" content="Shop authentic Karakoram products — Gilgiti caps, pure Himalayan shilajit and more. Delivered across Pakistan.">
+  <title>KarakoramStore — Gilgiti Caps &amp; Himalayan Shilajit | Cash on Delivery</title>
+  <meta name="description" content="Shop authentic Gilgiti caps and Asli Aftabi Shilajit from Gilgit-Baltistan. Cash on Delivery across Pakistan.">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-page="home" id="top">
 
   <div id="site-header-host"></div>
 
-  <section class="hero">
-    <div class="container">
-      <h1>Welcome to Karakoram Store</h1>
-      <p>Discover authentic products from Gilgit-Baltistan and the Karakoram — traditional Gilgiti caps, pure Asli Aftabi Shilajit and more, sourced locally and delivered across Pakistan.</p>
-      <form id="heroSearch" class="search-box" role="search">
-        <input type="search" placeholder="Search products..." aria-label="Search">
-        <button type="submit">Search</button>
-      </form>
+  <section class="store-hero">
+    <div class="store-hero-bg" aria-hidden="true"></div>
+    <div class="store-hero-inner max-wrap">
+      <div class="store-hero-copy">
+        <span class="pill pill-cod">&#128176; Cash on Delivery — All Pakistan</span>
+        <h1>From the <em>Karakoram</em> to Your Doorstep</h1>
+        <p class="lead">Handmade Gilgiti caps and pure Himalayan shilajit — sourced from Gilgit-Baltistan, delivered nationwide. <strong>Pay only when you receive your order.</strong></p>
+        <div class="hero-cta">
+          <a class="btn btn-lg" href="#shop">Shop Now</a>
+          <a class="btn btn-lg btn-whatsapp" id="hero-whatsapp" href="#">WhatsApp Order</a>
+        </div>
+        <ul class="hero-stats">
+          <li><strong>100%</strong> Authentic</li>
+          <li><strong>COD</strong> Nationwide</li>
+          <li><strong>2</strong> Premium Products</li>
+        </ul>
+      </div>
+      <div class="store-hero-products" aria-hidden="true">
+        <a href="product.html?id=gilgiti-cap" class="hero-product-card">
+          <img src="images/GilgitiCap.png" alt="Gilgiti Cap">
+          <span>Gilgiti Cap</span>
+        </a>
+        <a href="product.html?id=asli-aftabi-shilajit" class="hero-product-card hero-product-card--alt">
+          <img src="images/Shilajit.png" alt="Asli Aftabi Shilajit">
+          <span>Asli Aftabi Shilajit</span>
+        </a>
+      </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="section-title"><a href="all-products.html">All Products</a></div>
-    <div class="product-grid" id="all-products-grid"></div>
-    <div style="text-align:center;margin-top:36px;">
+  <div class="trust-bar">
+    <div class="max-wrap trust-bar-inner">
+      <div class="trust-item"><span class="trust-icon">&#128176;</span> Cash on Delivery</div>
+      <div class="trust-item"><span class="trust-icon">&#127757;</span> Delivery Across Pakistan</div>
+      <div class="trust-item"><span class="trust-icon">&#10003;</span> 100% Authentic Products</div>
+      <div class="trust-item"><span class="trust-icon">&#9742;</span> <span id="trust-phone">+92 318 0699050</span></div>
+    </div>
+  </div>
+
+  <section id="shop" class="section featured-shop">
+    <div class="section-head">
+      <span class="section-label">Our Collection</span>
+      <h2>Shop Karakoram Favourites</h2>
+      <p>Choose your size or quantity — every order ships with <strong>Cash on Delivery</strong>.</p>
+    </div>
+    <div class="featured-product-grid" id="featured-products"></div>
+    <div class="section-cta">
       <a class="btn outline" href="all-products.html">View All Products</a>
     </div>
   </section>
 
-  <div id="category-sections"></div>
+  <section class="cod-section">
+    <div class="max-wrap cod-section-inner">
+      <div class="cod-section-copy">
+        <h2>Order with Cash on Delivery</h2>
+        <p>No advance payment needed. Select your product and option (cap quantity or shilajit weight), confirm your order by phone or WhatsApp, and pay the courier in cash when your parcel arrives.</p>
+        <ol class="cod-steps">
+          <li>Pick product &amp; option (1–5 caps or 250g–1kg)</li>
+          <li>Share your name, phone &amp; city</li>
+          <li>Receive &amp; pay cash on delivery</li>
+        </ol>
+        <a class="btn" href="contact.html">Place Your Order</a>
+      </div>
+      <div class="cod-section-badge">
+        <div class="cod-big-badge">
+          <span>COD</span>
+          <small>Cash on Delivery</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="why-section">
+    <div class="max-wrap">
+      <div class="section-head">
+        <span class="section-label">Why Us</span>
+        <h2>Why KarakoramStore?</h2>
+      </div>
+      <div class="why-grid">
+        <article class="why-card">
+          <h3>Mountain Authentic</h3>
+          <p>Products tied to real Gilgit-Baltistan heritage — not mass-market copies.</p>
+        </article>
+        <article class="why-card">
+          <h3>Flexible Options</h3>
+          <p>Buy 1, 2, 3 or 5 Gilgiti caps. Shilajit from 250 gram up to 1 KG.</p>
+        </article>
+        <article class="why-card">
+          <h3>Safe COD Checkout</h3>
+          <p>Pay when you receive — the easiest way to shop online in Pakistan.</p>
+        </article>
+        <article class="why-card">
+          <h3>Personal Support</h3>
+          <p>Call or WhatsApp us anytime — we confirm every order before dispatch.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 
   <div id="site-footer-host"></div>
 
+  <script src="js/site.js"></script>
   <script src="js/products.js"></script>
   <script src="js/main.js"></script>
 </body>

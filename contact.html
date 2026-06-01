@@ -3,61 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact - KarakoramStore</title>
+  <title>Order / Contact - KarakoramStore</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-page="contact" id="top">
 
   <div id="site-header-host"></div>
 
-  <section class="hero" style="padding:60px 20px;">
-    <div class="container">
-      <h1>Contact Us</h1>
-      <p>Questions about products, pricing or delivery? We&rsquo;re here to help.</p>
+  <section class="page-hero-compact">
+    <div class="max-wrap">
+      <span class="pill pill-cod">Cash on Delivery</span>
+      <h1>Place Your Order</h1>
+      <p>Fill in the form or call / WhatsApp us. Pay cash when your order is delivered.</p>
     </div>
   </section>
 
-  <main class="page-content">
+  <main class="page-content order-page">
     <div class="contact-grid">
-      <form class="contact-form" id="contactForm" onsubmit="event.preventDefault();this.querySelector('button').textContent='Thanks! We will reply soon.';this.reset();">
-        <input type="text" name="name" placeholder="Your name" required>
-        <input type="email" name="email" placeholder="Email address" required>
-        <input type="text" name="subject" id="subjectInput" placeholder="Subject">
-        <textarea name="message" id="messageInput" placeholder="Your message" required></textarea>
-        <button type="submit" class="btn">Send Message</button>
+      <form class="contact-form order-form" id="contactForm" onsubmit="event.preventDefault();this.querySelector('button[type=submit]').textContent='Thanks! We will confirm your order soon.';">
+        <h3 class="form-heading">Order details</h3>
+
+        <label for="order-product">Product</label>
+        <select id="order-product" name="product" required>
+          <option value="">— Select product —</option>
+          <option value="gilgiti-cap">Gilgiti Cap</option>
+          <option value="asli-aftabi-shilajit">Asli Aftabi Shilajit</option>
+        </select>
+
+        <label for="order-variant">Option</label>
+        <select id="order-variant" name="variant" required>
+          <option value="">— Select product first —</option>
+        </select>
+
+        <fieldset class="payment-fieldset">
+          <legend>Payment method</legend>
+          <label class="payment-option">
+            <input type="radio" name="payment" id="payment-cod" value="cod" checked>
+            <span><strong>Cash on Delivery (COD)</strong> — Pay when you receive your order</span>
+          </label>
+        </fieldset>
+
+        <label for="order-name">Your name</label>
+        <input type="text" id="order-name" name="name" placeholder="Full name" required>
+
+        <label for="order-phone">Phone / WhatsApp</label>
+        <input type="tel" id="order-phone" name="phone" placeholder="03XX XXXXXXX" required>
+
+        <label for="order-city">City &amp; delivery address</label>
+        <input type="text" id="order-city" name="city" placeholder="City and full address" required>
+
+        <label for="order-email">Email (optional)</label>
+        <input type="email" id="order-email" name="email" placeholder="Email address">
+
+        <label for="subjectInput">Subject</label>
+        <input type="text" name="subject" id="subjectInput" placeholder="Order subject">
+
+        <label for="messageInput">Message</label>
+        <textarea name="message" id="messageInput" placeholder="Your order details" required rows="8"></textarea>
+
+        <button type="submit" class="btn">Submit COD Order</button>
+        <a class="btn outline btn-whatsapp-block" id="contact-wa-btn" href="#" target="_blank" rel="noopener">Or order on WhatsApp</a>
       </form>
 
       <aside class="contact-info-block">
-        <h3>Get in touch</h3>
-        <p><strong>Phone / WhatsApp:</strong> +92 318 0699050</p>
-        <p><strong>Email:</strong> info@karakoramstore.com</p>
-        <p><strong>Hours:</strong> Mon&ndash;Sat, 9am&ndash;7pm</p>
-        <hr style="margin:18px 0;border:0;border-top:1px solid #ddd;">
-        <h3>Fastest way to order</h3>
-        <p>Call or WhatsApp us with the product name and your city. We confirm price, stock and delivery time before you pay.</p>
+        <h3>Contact us</h3>
+        <p><strong>Phone:</strong> <span id="contact-page-phone">+92 318 0699050</span></p>
+        <p><strong>Email:</strong> <span id="contact-page-email">info@lifewithbooks.com</span></p>
+        <p><strong>Hours:</strong> <span id="contact-page-hours">Mon–Fri, 9am–6pm</span></p>
+        <hr>
+        <h3>Cash on Delivery</h3>
+        <p>No advance payment. We call to confirm your order, then ship. You pay the courier in cash when the parcel arrives.</p>
+        <hr>
+        <h3>Product options</h3>
+        <p><strong>Gilgiti Cap:</strong> 1, 2, 3 or 5 caps</p>
+        <p><strong>Shilajit:</strong> 250g, 500g or 1 KG</p>
       </aside>
     </div>
   </main>
 
   <div id="site-footer-host"></div>
 
+  <script src="js/site.js"></script>
   <script src="js/products.js"></script>
   <script src="js/main.js"></script>
   <script>
   (function(){
-    var productId = new URLSearchParams(window.location.search).get('product');
-    if(!productId || typeof PRODUCTS === 'undefined') return;
-    var product = PRODUCTS.find(function(p){ return p.id === productId; });
-    if(!product) return;
-    var subject = document.getElementById('subjectInput');
-    var message = document.getElementById('messageInput');
-    if(subject) subject.value = 'Order: ' + product.title;
-    if(message) message.value = 'Hi, I would like to order: ' + product.title + (product.price ? ' (' + product.price + ')' : '') + '.\n\nMy city: \nQuantity: \n';
-    document.getElementById('contactForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      this.querySelector('button').textContent = 'Thanks! We will reply soon.';
-      this.reset();
-    });
+    if (typeof SITE === 'undefined') return;
+    var wa = document.getElementById('contact-wa-btn');
+    if (wa) wa.href = 'https://wa.me/' + SITE.whatsapp + '?text=' + encodeURIComponent('Hi, I want to place a Cash on Delivery order from KarakoramStore.');
   })();
   </script>
 </body>

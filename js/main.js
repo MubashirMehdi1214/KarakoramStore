@@ -15,6 +15,32 @@ function escapeHtml(s) {
     .replace(/'/g, '&#039;');
 }
 
+function siteContact() {
+  return typeof SITE !== 'undefined' ? SITE : {
+    phone: '+92 318 0699050',
+    phoneTel: '+923180699050',
+    whatsapp: '923180699050',
+    email: 'info@lifewithbooks.com',
+    hours: 'Mon–Fri, 9am–6pm',
+    location: 'Gilgit-Baltistan, Pakistan',
+    codLabel: 'Cash on Delivery',
+    codNote: 'Pay when your order arrives.'
+  };
+}
+
+function whatsappUrl(message) {
+  const s = siteContact();
+  const text = encodeURIComponent(message || 'Hi, I would like to place an order from KarakoramStore.');
+  return 'https://wa.me/' + s.whatsapp + '?text=' + text;
+}
+
+function orderContactUrl(product, variantId) {
+  let url = 'contact.html?payment=cod';
+  if (product) url += '&product=' + encodeURIComponent(product.id);
+  if (variantId) url += '&variant=' + encodeURIComponent(variantId);
+  return url;
+}
+
 /* ---------- Header / footer injection ---------- */
 function buildCategoryDropdown() {
   if (typeof CATEGORIES === 'undefined') return '';
@@ -26,6 +52,7 @@ function buildCategoryDropdown() {
 function injectHeader() {
   const headerHost = $('#site-header-host');
   if (!headerHost) return;
+  const s = siteContact();
   const currentPage = (document.body.dataset.page || '').toLowerCase();
   const isHome = currentPage === 'home';
   const isAll = currentPage === 'all-products';
@@ -33,12 +60,13 @@ function injectHeader() {
   const isContact = currentPage === 'contact';
 
   headerHost.innerHTML = `
+    <div class="header-cod-strip">${escapeHtml(s.codLabel)} available — pay when you receive</div>
     <header class="site-header">
       <a class="site-logo" href="index.html" aria-label="KarakoramStore home">
         <span class="logo-mark">K</span>
         <span class="logo-text">
           <strong>KarakoramStore</strong>
-          <span>Authentic Karakoram Products</span>
+          <span>Gilgit-Baltistan · Pakistan</span>
         </span>
       </a>
     </header>
@@ -48,12 +76,13 @@ function injectHeader() {
         <ul>
           <li${isHome ? ' class="active"' : ''}><a href="index.html">Home</a></li>
           <li class="has-dropdown${isAll ? ' active' : ''}">
-            <a href="all-products.html">All Products</a>
+            <a href="all-products.html">Shop</a>
             <ul>${buildCategoryDropdown()}</ul>
           </li>
-          <li${isAbout ? ' class="active"' : ''}><a href="about.html">About Us</a></li>
-          <li${isContact ? ' class="active"' : ''}><a href="contact.html">Contact</a></li>
+          <li${isAbout ? ' class="active"' : ''}><a href="about.html">About</a></li>
+          <li${isContact ? ' class="active"' : ''}><a href="contact.html">Order / Contact</a></li>
         </ul>
+        <a class="nav-whatsapp" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp</a>
       </div>
     </nav>
   `;
@@ -77,32 +106,35 @@ function injectHeader() {
 function injectFooter() {
   const footerHost = $('#site-footer-host');
   if (!footerHost) return;
+  const s = siteContact();
   footerHost.innerHTML = `
     <footer class="site-footer">
       <div class="footer-inner">
         <div>
           <span class="brand-name">Karakoram<br>Store</span>
-          <p>Your trusted source for authentic products from Gilgit-Baltistan and the Karakoram — traditional caps, pure Himalayan shilajit and more, delivered across Pakistan.</p>
+          <p>Authentic Gilgiti caps and pure Himalayan shilajit from the Karakoram. <strong>${escapeHtml(s.codLabel)}</strong> across Pakistan.</p>
         </div>
         <div>
-          <h4>Categories</h4>
+          <h4>Shop</h4>
           <ul>
-            <li><a href="category.html?cat=traditional-wear">Traditional Wear</a></li>
-            <li><a href="category.html?cat=health-wellness">Health &amp; Wellness</a></li>
+            <li><a href="product.html?id=gilgiti-cap">Gilgiti Cap</a></li>
+            <li><a href="product.html?id=asli-aftabi-shilajit">Asli Aftabi Shilajit</a></li>
+            <li><a href="all-products.html">All Products</a></li>
           </ul>
         </div>
         <div class="contact-info">
           <h4>Contact us</h4>
-          <p><span class="icon">&#9742;</span> Phone: +92 318 0699050</p>
-          <p><span class="icon">&#9993;</span> info@karakoramstore.com</p>
-          <p><span class="icon">&#127968;</span> Gilgit-Baltistan, Pakistan</p>
-          <p><span class="icon">&#128205;</span> Nationwide delivery</p>
+          <p><span class="icon">&#9742;</span> <a href="tel:${escapeHtml(s.phoneTel)}">${escapeHtml(s.phone)}</a></p>
+          <p><span class="icon">&#9993;</span> <a href="mailto:${escapeHtml(s.email)}">${escapeHtml(s.email)}</a></p>
+          <p><span class="icon">&#128337;</span> ${escapeHtml(s.hours)}</p>
+          <p><span class="icon">&#128205;</span> ${escapeHtml(s.location)}</p>
         </div>
         <div>
-          <h4>Order Today</h4>
+          <h4>${escapeHtml(s.codLabel)}</h4>
           <div class="quote-box">
-            <span class="phone">+92 318 0699050</span>
-            <p>Call or WhatsApp us for pricing, availability and delivery anywhere in Pakistan.</p>
+            <span class="phone">${escapeHtml(s.phone)}</span>
+            <p>${escapeHtml(s.codNote)} Call or WhatsApp to confirm your order.</p>
+            <a class="btn btn-sm" href="${whatsappUrl()}" target="_blank" rel="noopener" style="margin-top:12px;">Order on WhatsApp</a>
           </div>
         </div>
       </div>
@@ -134,22 +166,69 @@ function productThumbHTML(product) {
 }
 
 function productCardHTML(product) {
-  const priceTag = product.price
-    ? `<span class="product-price">${escapeHtml(product.price)}</span>`
+  const priceTag = `<span class="product-price">${escapeHtml(getProductPriceDisplay(product))}</span>`;
+  const variantLine = product.variants && product.variants.length
+    ? `<p class="product-variants-hint">${escapeHtml(getVariantsSummary(product))}</p>`
     : '';
+  const codTag = '<span class="card-cod-tag">COD</span>';
   const hasImage = !!product.image;
   return `
     <article class="product-card cover-${escapeHtml(product.cover || 'traditional')}${hasImage ? ' has-image' : ''}">
+      ${codTag}
       <a class="thumb" href="product.html?id=${encodeURIComponent(product.id)}" aria-label="${escapeHtml(product.title)}">
         ${productThumbHTML(product)}
       </a>
       <div class="info">
         <h3><a href="product.html?id=${encodeURIComponent(product.id)}">${escapeHtml(product.title)}</a></h3>
         ${priceTag}
-        <a class="read-more" href="product.html?id=${encodeURIComponent(product.id)}">View Product</a>
+        ${variantLine}
+        <a class="read-more" href="product.html?id=${encodeURIComponent(product.id)}">View &amp; Order</a>
       </div>
     </article>
   `;
+}
+
+function featuredProductCardHTML(product) {
+  const defaultVariant = product.variants[0];
+  const optionsHTML = product.variants.map(function(v) {
+    return `<option value="${escapeHtml(v.id)}" data-price="${v.price}">${escapeHtml(v.label)} — ${escapeHtml(formatPKR(v.price))}</option>`;
+  }).join('');
+
+  return `
+    <article class="featured-card" data-product-id="${escapeHtml(product.id)}">
+      <span class="card-cod-tag">Cash on Delivery</span>
+      <a class="featured-card-image" href="product.html?id=${encodeURIComponent(product.id)}">
+        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" loading="lazy">
+      </a>
+      <div class="featured-card-body">
+        <h3><a href="product.html?id=${encodeURIComponent(product.id)}">${escapeHtml(product.title)}</a></h3>
+        <p class="featured-excerpt">${escapeHtml(product.excerpt)}</p>
+        <label class="variant-label" for="feat-${escapeHtml(product.id)}">Select option</label>
+        <select class="variant-select featured-variant" id="feat-${escapeHtml(product.id)}" data-product-id="${escapeHtml(product.id)}">
+          ${optionsHTML}
+        </select>
+        <p class="featured-price" data-price-for="${escapeHtml(product.id)}">${escapeHtml(formatPKR(defaultVariant.price))}</p>
+        <div class="featured-card-actions">
+          <a class="btn btn-order" href="${orderContactUrl(product, defaultVariant.id)}">Order with COD</a>
+          <a class="btn outline btn-detail" href="product.html?id=${encodeURIComponent(product.id)}">Details</a>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function bindFeaturedVariantSelects() {
+  $$('.featured-variant').forEach(function(select) {
+    select.addEventListener('change', function() {
+      const productId = select.dataset.productId;
+      const product = PRODUCTS.find(function(p) { return p.id === productId; });
+      const opt = select.selectedOptions[0];
+      const priceEl = document.querySelector('[data-price-for="' + productId + '"]');
+      const orderBtn = select.closest('.featured-card').querySelector('.btn-order');
+      if (priceEl && opt) priceEl.textContent = formatPKR(Number(opt.dataset.price));
+      if (orderBtn && product) orderBtn.href = orderContactUrl(product, opt.value);
+    });
+  });
 }
 
 function renderProductGrid(containerSel, products, limit) {
@@ -164,34 +243,18 @@ function renderProductGrid(containerSel, products, limit) {
 function initHome() {
   if (document.body.dataset.page !== 'home') return;
 
-  const featured = [
-    "traditional-wear",
-    "health-wellness"
-  ];
+  const s = siteContact();
+  const trustPhone = $('#trust-phone');
+  if (trustPhone) trustPhone.textContent = s.phone;
 
-  renderProductGrid('#all-products-grid', PRODUCTS);
+  const heroWa = $('#hero-whatsapp');
+  if (heroWa) heroWa.href = whatsappUrl('Hi, I want to order from KarakoramStore with Cash on Delivery.');
 
-  const host = $('#category-sections');
-  if (host) {
-    host.innerHTML = featured.map(slug => {
-      const cat = CATEGORIES.find(c => c.slug === slug);
-      const items = PRODUCTS.filter(p => p.categories.includes(slug));
-      if (!items.length) return '';
-      return `
-        <section class="section">
-          <div class="section-title"><a href="category.html?cat=${slug}">${cat.label}</a></div>
-          <div class="product-grid">${items.map(productCardHTML).join('')}</div>
-        </section>
-      `;
-    }).join('');
+  const featuredHost = $('#featured-products');
+  if (featuredHost && typeof PRODUCTS !== 'undefined') {
+    featuredHost.innerHTML = PRODUCTS.map(featuredProductCardHTML).join('');
+    bindFeaturedVariantSelects();
   }
-
-  const searchForm = $('#heroSearch');
-  searchForm && searchForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const q = $('#heroSearch input').value.trim();
-    if (q) window.location.href = 'all-products.html?q=' + encodeURIComponent(q);
-  });
 }
 
 /* ---------- All products page ---------- */
@@ -225,7 +288,7 @@ function initCategory() {
   const desc = $('#cat-description');
   if (title) title.textContent = cat ? cat.label : 'Category';
   if (desc) desc.textContent = cat
-    ? 'Browse our collection of ' + cat.label.toLowerCase() + ' from the Karakoram region.'
+    ? 'Browse our collection of ' + cat.label.toLowerCase() + ' from the Karakoram region. Cash on Delivery available.'
     : '';
   document.title = (cat ? cat.label : 'Category') + ' - KarakoramStore';
   const items = PRODUCTS.filter(p => p.categories.includes(slug));
@@ -244,38 +307,39 @@ function initProductDetail() {
   }
   document.title = product.title + ' - KarakoramStore';
 
+  const s = siteContact();
   const primaryCat = product.categories[0] || 'traditional-wear';
   const catObj = CATEGORIES.find(c => c.slug === primaryCat);
   const tags = product.categories.map(slug => {
     const c = CATEGORIES.find(x => x.slug === slug);
     return c ? '<span class="tag">' + escapeHtml(c.label) + '</span>' : '';
-  }).join('');
+  }).join('') + '<span class="tag tag-cod">' + escapeHtml(s.codLabel) + '</span>';
 
   const paragraphs = (product.description || []).map(function(p) {
     if (p.indexOf('## ') === 0) return '<h2>' + escapeHtml(p.slice(3)) + '</h2>';
     return '<p>' + escapeHtml(p) + '</p>';
   }).join('');
 
-  const related = PRODUCTS
-    .filter(p => p.id !== product.id && p.categories.includes(primaryCat))
-    .slice(0, 30);
-  const relatedHTML = related.length
-    ? related.map(p => `
-    <li><a href="product.html?id=${encodeURIComponent(p.id)}">
-      <span>${escapeHtml(p.title)}</span>
-      <span class="arrow">View Product &raquo;</span>
-    </a></li>
-  `).join('')
-    : PRODUCTS.filter(p => p.id !== product.id).map(p => `
+  const defaultVariant = product.variants[0];
+  const variantOptions = product.variants.map(function(v, i) {
+    return `<option value="${escapeHtml(v.id)}" data-price="${v.price}"${i === 0 ? ' selected' : ''}>${escapeHtml(v.label)} — ${escapeHtml(formatPKR(v.price))}</option>`;
+  }).join('');
+
+  const variantHTML = `
+    <div class="product-options">
+      <label for="variant-select">Choose option</label>
+      <select id="variant-select" class="variant-select">${variantOptions}</select>
+      <p class="product-price-detail" id="variant-price">${escapeHtml(formatPKR(defaultVariant.price))}</p>
+    </div>
+  `;
+
+  const related = PRODUCTS.filter(p => p.id !== product.id);
+  const relatedHTML = related.map(p => `
     <li><a href="product.html?id=${encodeURIComponent(p.id)}">
       <span>${escapeHtml(p.title)}</span>
       <span class="arrow">View Product &raquo;</span>
     </a></li>
   `).join('');
-
-  const priceHTML = product.price
-    ? '<p class="product-price-detail">' + escapeHtml(product.price) + '</p>'
-    : '';
 
   const imageHTML = product.image
     ? `<div class="product-hero-image"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}"></div>`
@@ -293,23 +357,121 @@ function initProductDetail() {
     ${imageHTML}
 
     <h1>${escapeHtml(product.title)}</h1>
-    ${priceHTML}
     <div class="meta">${tags}</div>
+
+    ${variantHTML}
+
+    <div class="cod-badge">
+      <strong>${escapeHtml(s.codLabel)}</strong>
+      <p>${escapeHtml(s.codNote)}</p>
+    </div>
 
     <article class="article">
       ${paragraphs}
     </article>
 
     <div class="order-block">
-      <p style="margin-bottom:16px;font-size:15px;">Ready to order? Contact us on WhatsApp or phone and we will confirm availability and delivery.</p>
-      <a class="btn" href="contact.html?product=${encodeURIComponent(product.id)}">Order Now</a>
+      <p style="margin-bottom:16px;font-size:15px;">Select your option above, then place your order. We confirm by phone or WhatsApp before dispatch.</p>
+      <div class="order-block-actions">
+        <a class="btn" id="order-btn" href="${orderContactUrl(product, defaultVariant.id)}">Order with Cash on Delivery</a>
+        <a class="btn outline" id="wa-order-btn" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp Order</a>
+      </div>
     </div>
 
     <div class="related-posts">
-      <h3>Related Products</h3>
+      <h3>Also Shop</h3>
       <ul>${relatedHTML}</ul>
     </div>
   `;
+
+  const variantSelect = $('#variant-select');
+  const priceEl = $('#variant-price');
+  const orderBtn = $('#order-btn');
+  const waBtn = $('#wa-order-btn');
+
+  function updateVariant() {
+    const opt = variantSelect.selectedOptions[0];
+    const variant = getVariant(product, opt.value);
+    if (priceEl) priceEl.textContent = formatPKR(variant.price);
+    if (orderBtn) orderBtn.href = orderContactUrl(product, variant.id);
+    if (waBtn) {
+      waBtn.href = whatsappUrl(
+        'Hi, I want to order:\n' + product.title + '\nOption: ' + variant.label + '\nPrice: ' + formatPKR(variant.price) + '\nPayment: Cash on Delivery\n\nMy name:\nCity:\nPhone:'
+      );
+    }
+  }
+
+  variantSelect && variantSelect.addEventListener('change', updateVariant);
+  updateVariant();
+}
+
+/* ---------- Contact / order page ---------- */
+function initContact() {
+  if (document.body.dataset.page !== 'contact') return;
+  const s = siteContact();
+  const productId = getParam('product');
+  const variantId = getParam('variant');
+  const payment = getParam('payment') || 'cod';
+
+  const productSelect = $('#order-product');
+  const variantSelect = $('#order-variant');
+  const paymentCod = $('#payment-cod');
+  const messageInput = $('#messageInput');
+  const subjectInput = $('#subjectInput');
+  const phoneDisplay = $('#contact-page-phone');
+  const emailDisplay = $('#contact-page-email');
+  const hoursDisplay = $('#contact-page-hours');
+
+  if (phoneDisplay) phoneDisplay.innerHTML = '<a href="tel:' + escapeHtml(s.phoneTel) + '">' + escapeHtml(s.phone) + '</a>';
+  if (emailDisplay) emailDisplay.innerHTML = '<a href="mailto:' + escapeHtml(s.email) + '">' + escapeHtml(s.email) + '</a>';
+  if (hoursDisplay) hoursDisplay.textContent = s.hours;
+
+  function fillVariants(product) {
+    if (!variantSelect || !product || !product.variants) return;
+    variantSelect.innerHTML = product.variants.map(function(v) {
+      return '<option value="' + escapeHtml(v.id) + '">' + escapeHtml(v.label) + ' — ' + escapeHtml(formatPKR(v.price)) + '</option>';
+    }).join('');
+  }
+
+  function updateMessage() {
+    const pid = productSelect ? productSelect.value : productId;
+    const product = PRODUCTS.find(function(p) { return p.id === pid; });
+    if (!product) return;
+    const vid = variantSelect ? variantSelect.value : variantId;
+    const variant = getVariant(product, vid);
+    if (subjectInput) subjectInput.value = 'COD Order: ' + product.title;
+    if (messageInput) {
+      messageInput.value =
+        'Hi, I would like to place a Cash on Delivery order:\n\n' +
+        'Product: ' + product.title + '\n' +
+        'Option: ' + variant.label + '\n' +
+        'Price: ' + formatPKR(variant.price) + '\n' +
+        'Payment: Cash on Delivery\n\n' +
+        'Full name:\n' +
+        'Phone:\n' +
+        'City / Address:\n' +
+        'Notes:\n';
+    }
+  }
+
+  if (productSelect) {
+    productSelect.addEventListener('change', function() {
+      const product = PRODUCTS.find(function(p) { return p.id === productSelect.value; });
+      fillVariants(product);
+      updateMessage();
+    });
+  }
+  if (variantSelect) variantSelect.addEventListener('change', updateMessage);
+
+  if (productSelect && productId) {
+    productSelect.value = productId;
+    const product = PRODUCTS.find(function(p) { return p.id === productId; });
+    fillVariants(product);
+    if (variantSelect && variantId) variantSelect.value = variantId;
+    updateMessage();
+  }
+
+  if (paymentCod) paymentCod.checked = payment === 'cod';
 }
 
 
@@ -321,4 +483,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initAllProducts();
   initCategory();
   initProductDetail();
+  initContact();
 });
