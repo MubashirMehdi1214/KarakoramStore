@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact - KarakoramStore</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="contact" id="top">
+
+  <div id="site-header-host"></div>
+
+  <section class="hero" style="padding:60px 20px;">
+    <div class="container">
+      <h1>Contact Us</h1>
+      <p>Questions about products, pricing or delivery? We&rsquo;re here to help.</p>
+    </div>
+  </section>
+
+  <main class="page-content">
+    <div class="contact-grid">
+      <form class="contact-form" id="contactForm" onsubmit="event.preventDefault();this.querySelector('button').textContent='Thanks! We will reply soon.';this.reset();">
+        <input type="text" name="name" placeholder="Your name" required>
+        <input type="email" name="email" placeholder="Email address" required>
+        <input type="text" name="subject" id="subjectInput" placeholder="Subject">
+        <textarea name="message" id="messageInput" placeholder="Your message" required></textarea>
+        <button type="submit" class="btn">Send Message</button>
+      </form>
+
+      <aside class="contact-info-block">
+        <h3>Get in touch</h3>
+        <p><strong>Phone / WhatsApp:</strong> +92 318 0699050</p>
+        <p><strong>Email:</strong> info@karakoramstore.com</p>
+        <p><strong>Hours:</strong> Mon&ndash;Sat, 9am&ndash;7pm</p>
+        <hr style="margin:18px 0;border:0;border-top:1px solid #ddd;">
+        <h3>Fastest way to order</h3>
+        <p>Call or WhatsApp us with the product name and your city. We confirm price, stock and delivery time before you pay.</p>
+      </aside>
+    </div>
+  </main>
+
+  <div id="site-footer-host"></div>
+
+  <script src="js/books.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+  (function(){
+    var productId = new URLSearchParams(window.location.search).get('product');
+    if(!productId || typeof BOOKS === 'undefined') return;
+    var book = BOOKS.find(function(b){ return b.id === productId; });
+    if(!book) return;
+    var subject = document.getElementById('subjectInput');
+    var message = document.getElementById('messageInput');
+    if(subject) subject.value = 'Order: ' + book.title;
+    if(message) message.value = 'Hi, I would like to order: ' + book.title + (book.price ? ' (' + book.price + ')' : '') + '.\n\nMy city: \nQuantity: \n';
+    document.getElementById('contactForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      this.querySelector('button').textContent = 'Thanks! We will reply soon.';
+      this.reset();
+    });
+  })();
+  </script>
+</body>
+</html>
