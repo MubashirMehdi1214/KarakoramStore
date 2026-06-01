@@ -1173,6 +1173,14 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   font-size: 14px;
 }
 .payment-option input { margin-top: 4px; }
+.order-note {
+  font-size: 13px;
+  color: var(--contrast-3);
+  background: #e8f5e9;
+  padding: 12px;
+  border-radius: var(--radius);
+  margin-top: 8px;
+}
 .btn-whatsapp-block { display: block; text-align: center; margin-top: 8px; }
 
 .site-footer .contact-info a { color: #cfd6cf; }

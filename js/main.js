@@ -586,6 +586,55 @@ function initContact() {
   }
 
   if (paymentCod) paymentCod.checked = payment === 'cod';
+
+  const form = $('#contactForm');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = ($('#order-name') || {}).value ? $('#order-name').value.trim() : '';
+      const phone = ($('#order-phone') || {}).value ? $('#order-phone').value.trim() : '';
+      const city = ($('#order-city') || {}).value ? $('#order-city').value.trim() : '';
+      const email = ($('#order-email') || {}).value ? $('#order-email').value.trim() : '';
+      const pid = productSelect ? productSelect.value : '';
+      const product = PRODUCTS.find(function(p) { return p.id === pid; });
+      const vid = variantSelect ? variantSelect.value : '';
+      const variant = product ? getVariant(product, vid) : null;
+
+      if (!product || !variant) {
+        alert('Please select a product and option.');
+        return;
+      }
+      if (!name || !phone || !city) {
+        alert('Please fill in your name, phone and delivery address.');
+        return;
+      }
+
+      const lines = [
+        '*New COD Order — KarakoramStore*',
+        '',
+        'Product: ' + product.title,
+        'Option: ' + getVariantLabel(product, variant),
+        'Price: ' + formatPKR(variant.price),
+        'Payment: Cash on Delivery',
+        '',
+        'Name: ' + name,
+        'Phone: ' + phone,
+        'City / Address: ' + city
+      ];
+      if (email) lines.push('Email: ' + email);
+      const extra = messageInput && messageInput.value.trim();
+      if (extra) {
+        lines.push('', 'Notes:', extra);
+      }
+
+      window.open(whatsappUrl(lines.join('\n')), '_blank');
+      const btn = form.querySelector('button[type=submit]');
+      if (btn) btn.textContent = 'Sent! Check WhatsApp';
+      setTimeout(function() {
+        if (btn) btn.textContent = 'Submit COD Order';
+      }, 4000);
+    });
+  }
 }
 
 

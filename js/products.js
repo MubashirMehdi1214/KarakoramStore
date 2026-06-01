@@ -13,22 +13,24 @@ const PRODUCTS = [
       { id: "kids", label: "Kids", image: "images/GilgitcapKids.jpeg" }
     ],
     variants: [
-      { id: "elders-1-cap", size: "elders", label: "1 Cap", price: 1500 },
-      { id: "elders-2-caps", size: "elders", label: "2 Caps", price: 2800 },
-      { id: "elders-3-caps", size: "elders", label: "3 Caps", price: 4000 },
-      { id: "elders-5-caps", size: "elders", label: "5 Caps", price: 6500 },
-      { id: "kids-1-cap", size: "kids", label: "1 Cap", price: 1500 },
-      { id: "kids-2-caps", size: "kids", label: "2 Caps", price: 2800 },
-      { id: "kids-3-caps", size: "kids", label: "3 Caps", price: 4000 },
-      { id: "kids-5-caps", size: "kids", label: "5 Caps", price: 6500 }
+      { id: "elders-1-cap", size: "elders", label: "1 Cap", price: 1200 },
+      { id: "elders-2-caps", size: "elders", label: "2 Caps", price: 2400 },
+      { id: "elders-3-caps", size: "elders", label: "3 Caps", price: 3600 },
+      { id: "elders-5-caps", size: "elders", label: "5 Caps", price: 6000 },
+      { id: "kids-1-cap", size: "kids", label: "1 Cap", price: 1000 },
+      { id: "kids-2-caps", size: "kids", label: "2 Caps", price: 2000 },
+      { id: "kids-3-caps", size: "kids", label: "3 Caps", price: 3000 },
+      { id: "kids-5-caps", size: "kids", label: "5 Caps", price: 5000 }
     ],
     description: [
       "## Two Sizes — Elders & Kids",
       "Our Gilgiti caps come in two fits: **Elders (Adult)** for men and women, and **Kids** for children. Both are handmade with the same traditional wool, velvet front and feather detail — sized correctly for each age group.",
       "## Authentic Mountain Heritage",
       "The Gilgiti Cap is one of the most recognizable symbols of culture in Gilgit-Baltistan and the wider Karakoram region. Each cap is made with care using quality wool and stitching techniques passed down through local artisans.",
+      "## Pricing Per Cap",
+      "**Elders (Adult):** PKR 1,200 per cap · **Kids:** PKR 1,000 per cap. Choose your size, then select quantity — 1, 2, 3 or 5 caps.",
       "## Order Your Quantity",
-      "Choose your size (Elders or Kids), then select how many caps you need — 1, 2, 3 or 5. Perfect for family orders and gifts.",
+      "Perfect for family orders and gifts. Total price updates automatically based on size and quantity.",
       "## Cash on Delivery",
       "Select size and quantity, place your order, and pay cash when the courier delivers anywhere in Pakistan."
     ]
@@ -42,14 +44,14 @@ const PRODUCTS = [
     image: "images/Shilajit.png",
     excerpt: "Pure Himalayan shilajit resin from the Karakoram — traditionally valued for vitality, stamina and natural wellness support.",
     variants: [
-      { id: "250g", label: "250 Gram", price: 2500 },
-      { id: "500g", label: "500 Gram", price: 4500 },
-      { id: "1kg", label: "1 KG", price: 8000 }
+      { id: "10g", label: "10 Gram", price: 1000 },
+      { id: "20g", label: "20 Gram", price: 1800 },
+      { id: "30g", label: "30 Gram", price: 2500 }
     ],
     description: [
       "## Pure From the Karakoram",
       "Asli Aftabi Shilajit is natural mineral-rich resin formed over centuries in the high-altitude rocks of the Himalayas and Karakoram. For generations it has been used in traditional wellness practices across Gilgit-Baltistan and surrounding regions.",
-      "Our shilajit is carefully collected, purified and packed to preserve its natural properties. Choose the size that suits you — 250 gram, 500 gram or 1 KG jars.",
+      "Our shilajit is carefully collected, purified and packed to preserve its natural properties. Available in **10g (PKR 1,000)**, **20g (PKR 1,800)** and **30g (PKR 2,500)**.",
       "## Traditional Wellness Support",
       "Shilajit is widely valued for supporting energy, stamina, recovery after physical exertion and general vitality. Many customers use a small daily amount dissolved in warm water, milk or tea as part of their routine.",
       "## How to Use",
