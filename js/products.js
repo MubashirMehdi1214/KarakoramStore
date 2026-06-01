@@ -7,21 +7,30 @@ const PRODUCTS = [
     categories: ["traditional-wear"],
     cover: "traditional",
     image: "images/GilgitiCap.png",
-    excerpt: "Authentic hand-crafted Gilgiti cap from the Karakoram region — warm, durable and a timeless symbol of mountain heritage.",
+    excerpt: "Authentic hand-crafted Gilgiti cap — available in Elders (adult) and Kids sizes. Order 1, 2, 3 or 5 caps with Cash on Delivery.",
+    sizes: [
+      { id: "elders", label: "Elders (Adult)", image: "images/GilgitiCap.png" },
+      { id: "kids", label: "Kids", image: "images/GilgitcapKids.jpeg" }
+    ],
     variants: [
-      { id: "1-cap", label: "1 Cap", price: 1500 },
-      { id: "2-caps", label: "2 Caps", price: 2800 },
-      { id: "3-caps", label: "3 Caps", price: 4000 },
-      { id: "5-caps", label: "5 Caps", price: 6500 }
+      { id: "elders-1-cap", size: "elders", label: "1 Cap", price: 1500 },
+      { id: "elders-2-caps", size: "elders", label: "2 Caps", price: 2800 },
+      { id: "elders-3-caps", size: "elders", label: "3 Caps", price: 4000 },
+      { id: "elders-5-caps", size: "elders", label: "5 Caps", price: 6500 },
+      { id: "kids-1-cap", size: "kids", label: "1 Cap", price: 1500 },
+      { id: "kids-2-caps", size: "kids", label: "2 Caps", price: 2800 },
+      { id: "kids-3-caps", size: "kids", label: "3 Caps", price: 4000 },
+      { id: "kids-5-caps", size: "kids", label: "5 Caps", price: 6500 }
     ],
     description: [
+      "## Two Sizes — Elders & Kids",
+      "Our Gilgiti caps come in two fits: **Elders (Adult)** for men and women, and **Kids** for children. Both are handmade with the same traditional wool, velvet front and feather detail — sized correctly for each age group.",
       "## Authentic Mountain Heritage",
-      "The Gilgiti Cap is one of the most recognizable symbols of culture in Gilgit-Baltistan and the wider Karakoram region. Worn for generations by locals and visitors alike, it represents warmth, craftsmanship and pride in mountain heritage.",
-      "Each cap is made with care using quality wool and traditional stitching techniques passed down through local artisans. The classic design features a rounded crown and soft brim, ideal for cold mountain weather while remaining comfortable for everyday wear.",
-      "## Quality & Craftsmanship",
-      "Our Gilgiti caps are sourced from trusted local makers who understand the original patterns, materials and finishing that define a genuine cap. Order 1, 2, 3 or more caps — perfect as gifts for family and friends.",
+      "The Gilgiti Cap is one of the most recognizable symbols of culture in Gilgit-Baltistan and the wider Karakoram region. Each cap is made with care using quality wool and stitching techniques passed down through local artisans.",
+      "## Order Your Quantity",
+      "Choose your size (Elders or Kids), then select how many caps you need — 1, 2, 3 or 5. Perfect for family orders and gifts.",
       "## Cash on Delivery",
-      "Select your quantity, place your order and pay cash when the courier delivers to your doorstep anywhere in Pakistan."
+      "Select size and quantity, place your order, and pay cash when the courier delivers anywhere in Pakistan."
     ]
   },
   {
@@ -60,9 +69,41 @@ function formatPKR(amount) {
   return "PKR " + Number(amount).toLocaleString("en-PK");
 }
 
+function productHasSizes(product) {
+  return !!(product && product.sizes && product.sizes.length);
+}
+
+function getSize(product, sizeId) {
+  if (!productHasSizes(product)) return null;
+  return product.sizes.find(function(s) { return s.id === sizeId; }) || product.sizes[0];
+}
+
+function getVariantsForSize(product, sizeId) {
+  if (!product || !product.variants) return [];
+  if (!productHasSizes(product)) return product.variants;
+  return product.variants.filter(function(v) { return v.size === sizeId; });
+}
+
 function getVariant(product, variantId) {
   if (!product || !product.variants) return null;
   return product.variants.find(function(v) { return v.id === variantId; }) || product.variants[0];
+}
+
+function getVariantLabel(product, variant) {
+  if (!variant) return "";
+  if (productHasSizes(product) && variant.size) {
+    var size = getSize(product, variant.size);
+    return (size ? size.label : "") + " · " + variant.label;
+  }
+  return variant.label;
+}
+
+function getProductImage(product, sizeId) {
+  if (productHasSizes(product) && sizeId) {
+    var size = getSize(product, sizeId);
+    if (size && size.image) return size.image;
+  }
+  return product.image || "";
 }
 
 function getProductPriceDisplay(product) {
@@ -75,10 +116,16 @@ function getProductPriceDisplay(product) {
 }
 
 function getVariantsSummary(product) {
+  if (productHasSizes(product)) {
+    return "Elders & Kids · 1, 2, 3 or 5 caps";
+  }
   if (!product.variants || !product.variants.length) return "";
   return product.variants.map(function(v) { return v.label; }).join(" · ");
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { PRODUCTS, CATEGORIES, formatPKR, getVariant, getProductPriceDisplay, getVariantsSummary };
+  module.exports = {
+    PRODUCTS, CATEGORIES, formatPKR, productHasSizes, getSize, getVariantsForSize,
+    getVariant, getVariantLabel, getProductImage, getProductPriceDisplay, getVariantsSummary
+  };
 }

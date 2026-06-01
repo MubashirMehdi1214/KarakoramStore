@@ -1130,6 +1130,9 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   margin-bottom: 20px;
   max-width: 400px;
 }
+.product-options-sized { max-width: 420px; }
+.product-options .option-row { margin-bottom: 14px; }
+.product-options .option-row:last-of-type { margin-bottom: 8px; }
 .product-options label { display: block; font-weight: 700; margin-bottom: 8px; color: var(--contrast); }
 .tag-cod { background: #e8f5e9 !important; color: #1b5e20 !important; }
 

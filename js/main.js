@@ -41,6 +41,86 @@ function orderContactUrl(product, variantId) {
   return url;
 }
 
+function buildVariantSelectOptions(product, sizeId) {
+  const list = productHasSizes(product) ? getVariantsForSize(product, sizeId) : (product.variants || []);
+  return list.map(function(v) {
+    return '<option value="' + escapeHtml(v.id) + '" data-price="' + v.price + '">' +
+      escapeHtml(v.label) + ' — ' + escapeHtml(formatPKR(v.price)) + '</option>';
+  }).join('');
+}
+
+function buildProductOptionsHTML(product) {
+  if (productHasSizes(product)) {
+    const defaultSize = product.sizes[0];
+    const sizeOptions = product.sizes.map(function(s, i) {
+      return '<option value="' + escapeHtml(s.id) + '"' + (i === 0 ? ' selected' : '') + '>' +
+        escapeHtml(s.label) + '</option>';
+    }).join('');
+    const defaultVariant = getVariantsForSize(product, defaultSize.id)[0];
+    return `
+      <div class="product-options product-options-sized">
+        <div class="option-row">
+          <label for="size-select">Size</label>
+          <select id="size-select" class="variant-select size-select" data-product-id="${escapeHtml(product.id)}">
+            ${sizeOptions}
+          </select>
+        </div>
+        <div class="option-row">
+          <label for="variant-select">Quantity</label>
+          <select id="variant-select" class="variant-select qty-select">
+            ${buildVariantSelectOptions(product, defaultSize.id)}
+          </select>
+        </div>
+        <p class="product-price-detail" id="variant-price">${escapeHtml(formatPKR(defaultVariant.price))}</p>
+      </div>
+    `;
+  }
+  const defaultVariant = product.variants[0];
+  return `
+    <div class="product-options">
+      <label for="variant-select">Choose option</label>
+      <select id="variant-select" class="variant-select">${buildVariantSelectOptions(product)}</select>
+      <p class="product-price-detail" id="variant-price">${escapeHtml(formatPKR(defaultVariant.price))}</p>
+    </div>
+  `;
+}
+
+function bindProductOptionControls(scope, product, callbacks) {
+  const root = scope || document;
+  const sizeSelect = root.querySelector('#size-select');
+  const variantSelect = root.querySelector('#variant-select');
+  const heroImg = root.querySelector('#product-hero-img') || root.querySelector('.featured-product-img');
+
+  function refreshQtyOptions() {
+    if (!sizeSelect || !variantSelect) return;
+    const sizeId = sizeSelect.value;
+    const prev = variantSelect.value;
+    variantSelect.innerHTML = buildVariantSelectOptions(product, sizeId);
+    const still = getVariantsForSize(product, sizeId).find(function(v) { return v.id === prev; });
+    variantSelect.value = still ? still.id : variantSelect.options[0].value;
+    if (heroImg && productHasSizes(product)) {
+      heroImg.src = getProductImage(product, sizeId);
+      const size = getSize(product, sizeId);
+      heroImg.alt = product.title + ' — ' + size.label;
+    }
+    fireUpdate();
+  }
+
+  function fireUpdate() {
+    if (!variantSelect) return;
+    const variant = getVariant(product, variantSelect.value);
+    if (callbacks && callbacks.onChange) callbacks.onChange(variant, sizeSelect ? sizeSelect.value : null);
+  }
+
+  if (sizeSelect) {
+    sizeSelect.addEventListener('change', refreshQtyOptions);
+  }
+  if (variantSelect) {
+    variantSelect.addEventListener('change', fireUpdate);
+  }
+  fireUpdate();
+}
+
 /* ---------- Header / footer injection ---------- */
 function buildCategoryDropdown() {
   if (typeof CATEGORIES === 'undefined') return '';
@@ -189,24 +269,46 @@ function productCardHTML(product) {
 }
 
 function featuredProductCardHTML(product) {
-  const defaultVariant = product.variants[0];
-  const optionsHTML = product.variants.map(function(v) {
-    return `<option value="${escapeHtml(v.id)}" data-price="${v.price}">${escapeHtml(v.label)} — ${escapeHtml(formatPKR(v.price))}</option>`;
-  }).join('');
+  const defaultSize = productHasSizes(product) ? product.sizes[0] : null;
+  const defaultVariant = productHasSizes(product)
+    ? getVariantsForSize(product, defaultSize.id)[0]
+    : product.variants[0];
+  const imgSrc = getProductImage(product, defaultSize ? defaultSize.id : null);
+
+  let optionsBlock = '';
+  if (productHasSizes(product)) {
+    const sizeOptions = product.sizes.map(function(s, i) {
+      return '<option value="' + escapeHtml(s.id) + '"' + (i === 0 ? ' selected' : '') + '>' + escapeHtml(s.label) + '</option>';
+    }).join('');
+    optionsBlock = `
+      <label class="variant-label" for="feat-size-${escapeHtml(product.id)}">Size</label>
+      <select class="variant-select featured-size-select" id="feat-size-${escapeHtml(product.id)}" data-product-id="${escapeHtml(product.id)}">
+        ${sizeOptions}
+      </select>
+      <label class="variant-label" for="feat-qty-${escapeHtml(product.id)}">Quantity</label>
+      <select class="variant-select featured-qty-select" id="feat-qty-${escapeHtml(product.id)}" data-product-id="${escapeHtml(product.id)}">
+        ${buildVariantSelectOptions(product, defaultSize.id)}
+      </select>
+    `;
+  } else {
+    optionsBlock = `
+      <label class="variant-label" for="feat-${escapeHtml(product.id)}">Select option</label>
+      <select class="variant-select featured-qty-select" id="feat-${escapeHtml(product.id)}" data-product-id="${escapeHtml(product.id)}">
+        ${buildVariantSelectOptions(product)}
+      </select>
+    `;
+  }
 
   return `
     <article class="featured-card" data-product-id="${escapeHtml(product.id)}">
       <span class="card-cod-tag">Cash on Delivery</span>
       <a class="featured-card-image" href="product.html?id=${encodeURIComponent(product.id)}">
-        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" loading="lazy">
+        <img class="featured-product-img" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(product.title)}" loading="lazy">
       </a>
       <div class="featured-card-body">
         <h3><a href="product.html?id=${encodeURIComponent(product.id)}">${escapeHtml(product.title)}</a></h3>
         <p class="featured-excerpt">${escapeHtml(product.excerpt)}</p>
-        <label class="variant-label" for="feat-${escapeHtml(product.id)}">Select option</label>
-        <select class="variant-select featured-variant" id="feat-${escapeHtml(product.id)}" data-product-id="${escapeHtml(product.id)}">
-          ${optionsHTML}
-        </select>
+        ${optionsBlock}
         <p class="featured-price" data-price-for="${escapeHtml(product.id)}">${escapeHtml(formatPKR(defaultVariant.price))}</p>
         <div class="featured-card-actions">
           <a class="btn btn-order" href="${orderContactUrl(product, defaultVariant.id)}">Order with COD</a>
@@ -218,16 +320,37 @@ function featuredProductCardHTML(product) {
 }
 
 function bindFeaturedVariantSelects() {
-  $$('.featured-variant').forEach(function(select) {
-    select.addEventListener('change', function() {
-      const productId = select.dataset.productId;
-      const product = PRODUCTS.find(function(p) { return p.id === productId; });
-      const opt = select.selectedOptions[0];
-      const priceEl = document.querySelector('[data-price-for="' + productId + '"]');
-      const orderBtn = select.closest('.featured-card').querySelector('.btn-order');
-      if (priceEl && opt) priceEl.textContent = formatPKR(Number(opt.dataset.price));
-      if (orderBtn && product) orderBtn.href = orderContactUrl(product, opt.value);
-    });
+  $$('.featured-card').forEach(function(card) {
+    const productId = card.dataset.productId;
+    const product = PRODUCTS.find(function(p) { return p.id === productId; });
+    if (!product) return;
+
+    const sizeSelect = card.querySelector('.featured-size-select');
+    const qtySelect = card.querySelector('.featured-qty-select');
+    const priceEl = card.querySelector('[data-price-for="' + productId + '"]');
+    const orderBtn = card.querySelector('.btn-order');
+    const heroImg = card.querySelector('.featured-product-img');
+
+    function updateFeatured() {
+      const variant = getVariant(product, qtySelect.value);
+      if (priceEl) priceEl.textContent = formatPKR(variant.price);
+      if (orderBtn) orderBtn.href = orderContactUrl(product, variant.id);
+    }
+
+    if (sizeSelect && qtySelect) {
+      sizeSelect.addEventListener('change', function() {
+        const sizeId = sizeSelect.value;
+        qtySelect.innerHTML = buildVariantSelectOptions(product, sizeId);
+        if (heroImg) {
+          heroImg.src = getProductImage(product, sizeId);
+          heroImg.alt = product.title + ' — ' + getSize(product, sizeId).label;
+        }
+        updateFeatured();
+      });
+    }
+
+    qtySelect && qtySelect.addEventListener('change', updateFeatured);
+    updateFeatured();
   });
 }
 
@@ -320,18 +443,11 @@ function initProductDetail() {
     return '<p>' + escapeHtml(p) + '</p>';
   }).join('');
 
-  const defaultVariant = product.variants[0];
-  const variantOptions = product.variants.map(function(v, i) {
-    return `<option value="${escapeHtml(v.id)}" data-price="${v.price}"${i === 0 ? ' selected' : ''}>${escapeHtml(v.label)} — ${escapeHtml(formatPKR(v.price))}</option>`;
-  }).join('');
-
-  const variantHTML = `
-    <div class="product-options">
-      <label for="variant-select">Choose option</label>
-      <select id="variant-select" class="variant-select">${variantOptions}</select>
-      <p class="product-price-detail" id="variant-price">${escapeHtml(formatPKR(defaultVariant.price))}</p>
-    </div>
-  `;
+  const defaultSize = productHasSizes(product) ? product.sizes[0].id : null;
+  const defaultVariant = productHasSizes(product)
+    ? getVariantsForSize(product, defaultSize)[0]
+    : product.variants[0];
+  const variantHTML = buildProductOptionsHTML(product);
 
   const related = PRODUCTS.filter(p => p.id !== product.id);
   const relatedHTML = related.map(p => `
@@ -341,8 +457,9 @@ function initProductDetail() {
     </a></li>
   `).join('');
 
-  const imageHTML = product.image
-    ? `<div class="product-hero-image"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}"></div>`
+  const heroImgSrc = getProductImage(product, defaultSize);
+  const imageHTML = heroImgSrc
+    ? `<div class="product-hero-image"><img id="product-hero-img" src="${escapeHtml(heroImgSrc)}" alt="${escapeHtml(product.title)}"></div>`
     : '';
 
   if (product.image) wrap.classList.add('has-image');
@@ -384,25 +501,22 @@ function initProductDetail() {
     </div>
   `;
 
-  const variantSelect = $('#variant-select');
-  const priceEl = $('#variant-price');
   const orderBtn = $('#order-btn');
   const waBtn = $('#wa-order-btn');
 
-  function updateVariant() {
-    const opt = variantSelect.selectedOptions[0];
-    const variant = getVariant(product, opt.value);
-    if (priceEl) priceEl.textContent = formatPKR(variant.price);
-    if (orderBtn) orderBtn.href = orderContactUrl(product, variant.id);
-    if (waBtn) {
-      waBtn.href = whatsappUrl(
-        'Hi, I want to order:\n' + product.title + '\nOption: ' + variant.label + '\nPrice: ' + formatPKR(variant.price) + '\nPayment: Cash on Delivery\n\nMy name:\nCity:\nPhone:'
-      );
+  bindProductOptionControls(wrap, product, {
+    onChange: function(variant, sizeId) {
+      const priceEl = $('#variant-price');
+      if (priceEl) priceEl.textContent = formatPKR(variant.price);
+      if (orderBtn) orderBtn.href = orderContactUrl(product, variant.id);
+      if (waBtn) {
+        var sizeLabel = sizeId && productHasSizes(product) ? getSize(product, sizeId).label + ' · ' : '';
+        waBtn.href = whatsappUrl(
+          'Hi, I want to order:\n' + product.title + '\n' + sizeLabel + variant.label + '\nPrice: ' + formatPKR(variant.price) + '\nPayment: Cash on Delivery\n\nMy name:\nCity:\nPhone:'
+        );
+      }
     }
-  }
-
-  variantSelect && variantSelect.addEventListener('change', updateVariant);
-  updateVariant();
+  });
 }
 
 /* ---------- Contact / order page ---------- */
@@ -429,7 +543,7 @@ function initContact() {
   function fillVariants(product) {
     if (!variantSelect || !product || !product.variants) return;
     variantSelect.innerHTML = product.variants.map(function(v) {
-      return '<option value="' + escapeHtml(v.id) + '">' + escapeHtml(v.label) + ' — ' + escapeHtml(formatPKR(v.price)) + '</option>';
+      return '<option value="' + escapeHtml(v.id) + '">' + escapeHtml(getVariantLabel(product, v)) + ' — ' + escapeHtml(formatPKR(v.price)) + '</option>';
     }).join('');
   }
 
@@ -444,7 +558,7 @@ function initContact() {
       messageInput.value =
         'Hi, I would like to place a Cash on Delivery order:\n\n' +
         'Product: ' + product.title + '\n' +
-        'Option: ' + variant.label + '\n' +
+        'Option: ' + getVariantLabel(product, variant) + '\n' +
         'Price: ' + formatPKR(variant.price) + '\n' +
         'Payment: Cash on Delivery\n\n' +
         'Full name:\n' +
