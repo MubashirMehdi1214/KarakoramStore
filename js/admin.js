@@ -1,17 +1,31 @@
 /* KarakoramStore — orders dashboard */
 
 (function() {
+  const web3Panel = document.getElementById('web3forms-panel');
   const loginPanel = document.getElementById('login-panel');
   const dashboardPanel = document.getElementById('dashboard-panel');
   const passInput = document.getElementById('admin-pass');
   const loginBtn = document.getElementById('admin-login-btn');
   const loginError = document.getElementById('login-error');
+  const apiHint = document.getElementById('api-hint');
   const ordersBody = document.getElementById('orders-body');
   const ordersCount = document.getElementById('orders-count');
   const refreshBtn = document.getElementById('refresh-orders');
   const logoutBtn = document.getElementById('logout-btn');
 
   const STORAGE_KEY = 'ks_admin_session';
+  const hasWeb3 = SITE.web3formsAccessKey && SITE.web3formsAccessKey.length > 10;
+  const hasGoogle = SITE.orderApiUrl && SITE.orderApiUrl.indexOf('script.google.com') !== -1;
+
+  if (web3Panel && hasWeb3) web3Panel.hidden = false;
+
+  if (apiHint) {
+    if (hasGoogle) {
+      apiHint.textContent = 'Google backend connected. Password is in js/site.js (adminPassword) and OrdersBackend.gs.';
+    } else {
+      apiHint.textContent = 'Google Sheet table not connected yet. Paste orderApiUrl in js/site.js after SETUP-ORDERS.md — or use Web3Forms dashboard above.';
+    }
+  }
 
   function showError(msg) {
     loginError.textContent = msg;
@@ -31,7 +45,7 @@
   function renderOrders(orders) {
     ordersBody.innerHTML = '';
     if (!orders || !orders.length) {
-      ordersBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;">No orders yet.</td></tr>';
+      ordersBody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;">No orders in Google Sheet yet. Submit a test order after connecting orderApiUrl.</td></tr>';
       ordersCount.textContent = '0 orders';
       return;
     }
@@ -44,6 +58,7 @@
         '<td>' + escapeCell(o.Product) + '</td>' +
         '<td>' + escapeCell(o.Option) + '</td>' +
         '<td>' + escapeCell(o['Price (PKR)']) + '</td>' +
+        '<td>' + escapeCell(o.Payment) + '</td>' +
         '<td>' + escapeCell(o['Customer Name']) + '</td>' +
         '<td><a href="tel:' + escapeCell(String(o.Phone).replace(/\s/g, '')) + '">' + escapeCell(o.Phone) + '</a></td>' +
         '<td>' + escapeCell(o['City / Address']) + '</td>' +
@@ -60,11 +75,11 @@
   }
 
   function loadOrders(password) {
-    if (!SITE.orderApiUrl) {
-      showError('Order API not set up. Add orderApiUrl in js/site.js — see SETUP-ORDERS.md');
+    if (!hasGoogle) {
+      showError('Google Sheet not connected. Add orderApiUrl in js/site.js — see SETUP-ORDERS.md. Use Web3Forms dashboard above for now.');
       return;
     }
-    ordersBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading…</td></tr>';
+    ordersBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">Loading…</td></tr>';
     fetchOrders(password)
       .then(function(data) {
         if (!data.ok) throw new Error(data.error || 'Failed to load');
@@ -75,7 +90,7 @@
         showError('');
       })
       .catch(function(err) {
-        showError(err.message || 'Could not load orders. Check password and SETUP-ORDERS.md');
+        showError(err.message || 'Could not load orders. Check password matches adminPassword in site.js and Apps Script.');
         ordersBody.innerHTML = '';
       });
   }
@@ -106,9 +121,7 @@
   });
 
   const saved = sessionStorage.getItem(STORAGE_KEY);
-  if (saved && SITE.orderApiUrl) {
+  if (saved && hasGoogle) {
     loadOrders(saved);
-  } else if (!SITE.orderApiUrl) {
-    showError('Backend not connected yet. Complete setup in SETUP-ORDERS.md first.');
   }
 })();

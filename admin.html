@@ -13,23 +13,29 @@
   <div class="admin-wrap">
     <header class="admin-header">
       <h1>KarakoramStore <span>Orders</span></h1>
-      <p>COD orders · Email: <strong>munashirmehdi@gmail.com</strong></p>
+      <p>Orders emailed to <strong>munashirmehdi@gmail.com</strong> via Web3Forms</p>
     </header>
 
+    <section id="web3forms-panel" class="admin-card" hidden>
+      <h2>Order submissions (Web3Forms)</h2>
+      <p>Every order from your website is stored in your Web3Forms account. Open the dashboard to see all submissions, export, or search.</p>
+      <a class="btn" href="https://app.web3forms.com/" target="_blank" rel="noopener">Open Web3Forms dashboard</a>
+      <p class="admin-hint" style="margin-top:16px;">Log in with <strong>munashirmehdi@gmail.com</strong> → select form <strong>KarakoramStore Orders</strong>.</p>
+    </section>
+
     <section id="login-panel" class="admin-card">
-      <h2>Staff login</h2>
-      <p>Enter your dashboard password (set in Google Apps Script).</p>
-      <label for="admin-pass">Password</label>
+      <h2>Orders table (Google Sheet)</h2>
+      <p>Optional: view orders in a spreadsheet on this page. Requires one-time Google setup (<code>SETUP-ORDERS.md</code>).</p>
+      <label for="admin-pass">Dashboard password</label>
       <input type="password" id="admin-pass" placeholder="Dashboard password" autocomplete="current-password">
-      <button type="button" class="btn" id="admin-login-btn">View orders</button>
+      <button type="button" class="btn" id="admin-login-btn">Load orders table</button>
       <p id="login-error" class="admin-error" hidden></p>
-      <hr>
-      <p class="admin-hint">Orders are already emailed to <strong>munashirmehdi@gmail.com</strong>. For this table, complete <strong>SETUP-ORDERS.md</strong> and paste <code>orderApiUrl</code> in <code>js/site.js</code>.</p>
+      <p id="api-hint" class="admin-hint"></p>
     </section>
 
     <section id="dashboard-panel" class="admin-card" hidden>
       <div class="admin-toolbar">
-        <h2>Recent orders</h2>
+        <h2>Recent orders (Google Sheet)</h2>
         <button type="button" class="btn outline" id="refresh-orders">Refresh</button>
         <button type="button" class="btn outline" id="logout-btn">Log out</button>
       </div>
@@ -43,6 +49,7 @@
               <th>Product</th>
               <th>Option</th>
               <th>Price</th>
+              <th>Payment</th>
               <th>Customer</th>
               <th>Phone</th>
               <th>Address</th>
@@ -52,7 +59,7 @@
           <tbody id="orders-body"></tbody>
         </table>
       </div>
-      <p class="admin-hint">Orders are also saved in your Google Sheet and emailed to you on each new order.</p>
+      <p class="admin-hint">New orders are saved to your Google Sheet when <code>orderApiUrl</code> is set in <code>js/site.js</code>.</p>
     </section>
   </div>
 

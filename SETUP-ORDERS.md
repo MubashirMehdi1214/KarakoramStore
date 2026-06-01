@@ -2,6 +2,16 @@
 
 When a customer submits an order, you should receive email at **munashirmehdi@gmail.com**.
 
+## View orders (Web3Forms dashboard — active now)
+
+1. Open [https://app.web3forms.com/](https://app.web3forms.com/)
+2. Log in with **munashirmehdi@gmail.com**
+3. Open form **KarakoramStore Orders** — every website order appears there
+
+Or on your site: **admin.html** → **Open Web3Forms dashboard**
+
+---
+
 ## Recommended: Web3Forms (5 minutes — reliable email)
 
 1. Open [https://web3forms.com](https://web3forms.com) → create access key with **munashirmehdi@gmail.com**

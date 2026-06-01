@@ -172,13 +172,17 @@ function redirectViaFormSubmit(payload, screenshotFile) {
 }
 
 function submitOrder(payload, screenshotFile) {
-  return submitViaGoogleScript(payload, screenshotFile).then(function(googleResult) {
+  const googlePromise = submitViaGoogleScript(payload, screenshotFile);
+  const w3Promise = submitViaWeb3Forms(payload, screenshotFile);
+
+  return Promise.all([googlePromise, w3Promise]).then(function(results) {
+    const googleResult = results[0];
+    const w3Result = results[1];
     if (googleResult && googleResult.ok) return googleResult;
-    return submitViaWeb3Forms(payload, screenshotFile).then(function(w3Result) {
-      if (w3Result && w3Result.ok) return w3Result;
-      if (w3Result && w3Result.ok === false) return w3Result;
-      return redirectViaFormSubmit(payload, screenshotFile);
-    });
+    if (w3Result && w3Result.ok) return w3Result;
+    if (w3Result && w3Result.ok === false) return w3Result;
+    if (googleResult && googleResult.ok === false) return googleResult;
+    return redirectViaFormSubmit(payload, screenshotFile);
   });
 }
 
