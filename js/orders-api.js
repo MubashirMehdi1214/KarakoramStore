@@ -45,32 +45,86 @@ function formatOrderEmailBody(p) {
   return lines.join('\n');
 }
 
+function appendHiddenField(form, name, value) {
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = name;
+  input.value = value;
+  form.appendChild(input);
+}
+
+/* FormSubmit /ajax/ is blocked by CORS in browsers — use a real form POST into a hidden iframe */
 function submitViaFormSubmit(payload, screenshotFile) {
   const s = typeof SITE !== 'undefined' ? SITE : {};
   const notifyEmail = s.orderNotifyEmail || 'munashirmehdi@gmail.com';
-  const fd = new FormData();
-  fd.append('name', payload.name);
-  fd.append('email', payload.email || 'order@karakoramstore.local');
-  fd.append('phone', payload.phone);
-  fd.append('_subject', 'New Order — KarakoramStore — ' + payload.payment);
-  fd.append('message', formatOrderEmailBody(payload));
-  fd.append('_template', 'table');
-  fd.append('_captcha', 'false');
-  if (screenshotFile) fd.append('attachment', screenshotFile, screenshotFile.name || 'payment-proof.jpg');
 
-  return fetch('https://formsubmit.co/ajax/' + encodeURIComponent(notifyEmail), {
-    method: 'POST',
-    headers: { Accept: 'application/json' },
-    body: fd
-  })
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.success) return { ok: true, orderId: 'email', via: 'formsubmit' };
-      return { ok: false, error: data.message || 'Email send failed' };
-    })
-    .catch(function(err) {
-      return { ok: false, error: String(err) };
-    });
+  return new Promise(function(resolve) {
+    const iframeName = 'formsubmit-iframe';
+    let iframe = document.getElementById(iframeName);
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = iframeName;
+      iframe.name = iframeName;
+      iframe.title = 'Order submit';
+      iframe.setAttribute('aria-hidden', 'true');
+      iframe.style.cssText = 'display:none;width:0;height:0;border:0';
+      document.body.appendChild(iframe);
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://formsubmit.co/' + notifyEmail;
+    form.enctype = 'multipart/form-data';
+    form.target = iframeName;
+    form.acceptCharset = 'UTF-8';
+    form.style.display = 'none';
+
+    appendHiddenField(form, 'name', payload.name);
+    appendHiddenField(form, 'email', payload.email || 'order@karakoramstore.local');
+    appendHiddenField(form, 'phone', payload.phone);
+    appendHiddenField(form, '_subject', 'New Order — KarakoramStore — ' + payload.payment);
+    appendHiddenField(form, 'message', formatOrderEmailBody(payload));
+    appendHiddenField(form, '_template', 'table');
+    appendHiddenField(form, '_captcha', 'false');
+
+    if (screenshotFile) {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.name = 'attachment';
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(screenshotFile);
+        fileInput.files = dt.files;
+        form.appendChild(fileInput);
+      } catch (err) {
+        form.remove();
+        resolve({ ok: false, error: 'Could not attach screenshot. Try a smaller image or WhatsApp us.' });
+        return;
+      }
+    }
+
+    document.body.appendChild(form);
+
+    let settled = false;
+    function finish(ok, error) {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      iframe.onload = null;
+      form.remove();
+      if (ok) resolve({ ok: true, orderId: 'email', via: 'formsubmit' });
+      else resolve({ ok: false, error: error || 'Email send failed' });
+    }
+
+    iframe.onload = function() { finish(true); };
+    const timer = window.setTimeout(function() { finish(true); }, 3500);
+
+    try {
+      form.submit();
+    } catch (err) {
+      finish(false, String(err));
+    }
+  });
 }
 
 function submitViaGoogleScript(payload, screenshotFile) {

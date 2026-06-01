@@ -538,6 +538,9 @@ function initContact() {
   const prepaidInstructions = $('#prepaid-instructions');
   const txnInput = $('#order-txn');
   const screenshotInput = $('#order-screenshot');
+  const contactWa = $('#contact-wa-btn');
+  if (contactWa) contactWa.href = whatsappUrl('Hi, I have a question about my KarakoramStore order.');
+
   const phoneDisplay = $('#contact-page-phone');
   const emailDisplay = $('#contact-page-email');
   const hoursDisplay = $('#contact-page-hours');
@@ -662,9 +665,10 @@ function initContact() {
 
       submitOrder(payload, screenshotFile).then(function(result) {
         if (result && result.ok) {
-          var msg = 'Order sent! Check your email confirmation from us soon. We will call/WhatsApp you.';
+          var msg = 'Order sent! We will call or WhatsApp you to confirm.';
           if (result.via === 'formsubmit') {
             msg += ' A copy was emailed to <strong>munashirmehdi@gmail.com</strong>.';
+            msg += ' If this is your first order, check that inbox for a one-time FormSubmit activation link.';
           }
           if (statusEl) {
             statusEl.innerHTML = '<span class="order-success">' + msg +
