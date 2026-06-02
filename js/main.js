@@ -325,7 +325,7 @@ function featuredProductCardHTML(product) {
       </a>
       <div class="featured-card-body">
         <h3><a href="product.html?id=${encodeURIComponent(product.id)}">${escapeHtml(product.title)}</a></h3>
-        <p class="featured-excerpt">${escapeHtml(product.excerpt)}</p>
+        <p class="featured-tagline">${escapeHtml(getVariantsSummary(product))}</p>
         ${optionsBlock}
         <p class="featured-price" data-price-for="${escapeHtml(product.id)}">${escapeHtml(formatPKR(defaultVariant.price))}</p>
         <div class="featured-card-actions">
