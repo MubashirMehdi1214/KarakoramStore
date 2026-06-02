@@ -15,6 +15,39 @@ function escapeHtml(s) {
     .replace(/'/g, '&#039;');
 }
 
+const CART_STORAGE_KEY = 'ks_cart_v1';
+
+function getCartItems() {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const data = raw ? JSON.parse(raw) : [];
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCartItems(items) {
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+}
+
+function getCartCount() {
+  return getCartItems().reduce(function(sum, item) {
+    return sum + (Number(item.qty) || 0);
+  }, 0);
+}
+
+function addToCart(productId, variantId, qty) {
+  const items = getCartItems();
+  const addQty = Math.max(1, Number(qty) || 1);
+  const found = items.find(function(i) {
+    return i.productId === productId && i.variantId === variantId;
+  });
+  if (found) found.qty += addQty;
+  else items.push({ productId: productId, variantId: variantId, qty: addQty });
+  saveCartItems(items);
+}
+
 function siteContact() {
   return typeof SITE !== 'undefined' ? SITE : {
     phone: '+92 311 5189291',
@@ -162,6 +195,7 @@ function injectHeader() {
             <button type="submit" aria-label="Search">&#128269;</button>
           </form>
           <a class="store-header-link" href="contact.html">Place Order</a>
+          <button class="store-header-link store-header-cart-btn" id="cartOpenBtn" type="button">Cart <span class="cart-count" id="cartCount">0</span></button>
           <a class="store-header-link store-header-wa" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp</a>
         </div>
         <button class="menu-toggle store-menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
@@ -174,6 +208,7 @@ function injectHeader() {
         <div class="store-header-mobile-actions">
           <a class="store-mobile-chip" href="tel:${escapeHtml(s.phoneTel)}">Call</a>
           <a class="store-mobile-chip" href="contact.html">Order</a>
+          <button class="store-mobile-chip store-mobile-chip--cart" id="cartOpenBtnMobile" type="button">Cart <span class="cart-count" id="cartCountMobile">0</span></button>
           <a class="store-mobile-chip store-mobile-chip--wa" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp</a>
         </div>
       </div>
@@ -251,6 +286,18 @@ function injectFooter() {
     <a class="float-whatsapp" href="${whatsappUrl()}" target="_blank" rel="noopener" aria-label="WhatsApp us">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
     </a>
+    <div class="cart-backdrop" id="cartBackdrop" hidden></div>
+    <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+      <div class="cart-drawer-head">
+        <h3>Your Cart</h3>
+        <button type="button" class="cart-close" id="cartCloseBtn" aria-label="Close cart">&times;</button>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-drawer-foot">
+        <p class="cart-total" id="cartTotal">Total: PKR 0</p>
+        <button type="button" class="btn" id="cartCheckoutBtn">Checkout</button>
+      </div>
+    </aside>
   `;
 
   const backBtn = $('#backToTop');
@@ -452,7 +499,7 @@ function shopProductCardHTML(product) {
           '<span class="shop-price-sale">' + escapeHtml(formatPKR(defaultVariant.price)) + '</span>' +
         '</div>' +
         '<div class="shop-card-options">' + optionsBlock + '</div>' +
-        '<a class="btn shop-add-btn shop-order-btn" href="' + orderContactUrl(product, defaultVariant.id) + '">Add</a>' +
+        '<button type="button" class="btn shop-add-btn shop-order-btn" data-product-id="' + escapeHtml(product.id) + '" data-variant-id="' + escapeHtml(defaultVariant.id) + '">Add to cart</button>' +
       '</div>' +
     '</article>'
   );
@@ -473,7 +520,7 @@ function bindShopProductCards() {
 
     function updateCard() {
       const variant = getVariant(product, qtySelect.value);
-      if (orderBtn) orderBtn.href = orderContactUrl(product, variant.id);
+      if (orderBtn) orderBtn.setAttribute('data-variant-id', variant.id);
       if (compareEl) compareEl.textContent = formatPKR(getCompareAtPrice(variant.price));
       if (saleEl) saleEl.textContent = formatPKR(variant.price);
     }
@@ -490,6 +537,14 @@ function bindShopProductCards() {
       });
     }
     qtySelect && qtySelect.addEventListener('change', updateCard);
+    orderBtn && orderBtn.addEventListener('click', function() {
+      const variantId = orderBtn.getAttribute('data-variant-id') || (qtySelect ? qtySelect.value : '');
+      addToCart(product.id, variantId, 1);
+      updateCartBadges();
+      const original = orderBtn.textContent;
+      orderBtn.textContent = 'Added';
+      setTimeout(function() { orderBtn.textContent = original; }, 800);
+    });
     updateCard();
   });
 }
@@ -515,6 +570,130 @@ function renderShopGrid(products, totalCount) {
 
 function getCatalogMaxPrice() {
   return Math.max.apply(null, PRODUCTS.map(function(p) { return getProductMaxPrice(p); }));
+}
+
+function getCartLine(item) {
+  const product = PRODUCTS.find(function(p) { return p.id === item.productId; });
+  if (!product) return null;
+  const variant = getVariant(product, item.variantId);
+  if (!variant) return null;
+  return {
+    key: item.productId + ':' + item.variantId,
+    product: product,
+    variant: variant,
+    label: getVariantLabel(product, variant),
+    qty: Math.max(1, Number(item.qty) || 1),
+    lineTotal: (Number(variant.price) || 0) * (Math.max(1, Number(item.qty) || 1))
+  };
+}
+
+function updateCartBadges() {
+  const count = getCartCount();
+  const countEls = [$('#cartCount'), $('#cartCountMobile')];
+  countEls.forEach(function(el) {
+    if (el) el.textContent = String(count);
+  });
+}
+
+function renderCartDrawer() {
+  const itemsEl = $('#cartItems');
+  const totalEl = $('#cartTotal');
+  if (!itemsEl || !totalEl) return;
+
+  const lines = getCartItems().map(getCartLine).filter(Boolean);
+  if (!lines.length) {
+    itemsEl.innerHTML = '<p class="cart-empty">Your cart is empty.</p>';
+    totalEl.textContent = 'Total: PKR 0';
+    return;
+  }
+
+  const total = lines.reduce(function(sum, l) { return sum + l.lineTotal; }, 0);
+  itemsEl.innerHTML = lines.map(function(l) {
+    return (
+      '<div class="cart-item" data-key="' + escapeHtml(l.key) + '">' +
+        '<div>' +
+          '<p class="cart-item-title">' + escapeHtml(l.product.title) + '</p>' +
+          '<p class="cart-item-sub">' + escapeHtml(l.label) + ' · ' + escapeHtml(formatPKR(l.variant.price)) + '</p>' +
+        '</div>' +
+        '<div class="cart-qty">' +
+          '<button type="button" data-action="dec">−</button>' +
+          '<span>' + l.qty + '</span>' +
+          '<button type="button" data-action="inc">+</button>' +
+          '<button type="button" data-action="rm" class="cart-rm">Remove</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+  totalEl.textContent = 'Total: ' + formatPKR(total);
+}
+
+function openCartDrawer() {
+  const drawer = $('#cartDrawer');
+  const backdrop = $('#cartBackdrop');
+  if (!drawer || !backdrop) return;
+  renderCartDrawer();
+  drawer.classList.add('is-open');
+  drawer.setAttribute('aria-hidden', 'false');
+  backdrop.hidden = false;
+  document.body.classList.add('cart-open');
+}
+
+function closeCartDrawer() {
+  const drawer = $('#cartDrawer');
+  const backdrop = $('#cartBackdrop');
+  if (!drawer || !backdrop) return;
+  drawer.classList.remove('is-open');
+  drawer.setAttribute('aria-hidden', 'true');
+  backdrop.hidden = true;
+  document.body.classList.remove('cart-open');
+}
+
+function checkoutFromCart() {
+  const items = getCartItems();
+  if (!items.length) return;
+  const lines = items.map(getCartLine).filter(Boolean);
+  const first = lines[0];
+  const summary = lines.map(function(l) {
+    return '- ' + l.product.title + ' (' + l.label + ') x' + l.qty + ' = ' + formatPKR(l.lineTotal);
+  }).join('\n');
+  sessionStorage.setItem('ks_cart_note', 'Cart order:\n' + summary);
+  window.location.href = 'contact.html?payment=cod&product=' + encodeURIComponent(first.product.id) + '&variant=' + encodeURIComponent(first.variant.id);
+}
+
+function initCartUI() {
+  updateCartBadges();
+
+  const openBtns = [$('#cartOpenBtn'), $('#cartOpenBtnMobile')];
+  openBtns.forEach(function(btn) {
+    if (!btn) return;
+    btn.addEventListener('click', openCartDrawer);
+  });
+  const closeBtn = $('#cartCloseBtn');
+  closeBtn && closeBtn.addEventListener('click', closeCartDrawer);
+  const backdrop = $('#cartBackdrop');
+  backdrop && backdrop.addEventListener('click', closeCartDrawer);
+  const checkoutBtn = $('#cartCheckoutBtn');
+  checkoutBtn && checkoutBtn.addEventListener('click', checkoutFromCart);
+
+  const itemsEl = $('#cartItems');
+  itemsEl && itemsEl.addEventListener('click', function(e) {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const row = e.target.closest('.cart-item');
+    if (!row) return;
+    const key = row.getAttribute('data-key');
+    if (!key) return;
+    const items = getCartItems();
+    const idx = items.findIndex(function(i) { return (i.productId + ':' + i.variantId) === key; });
+    if (idx < 0) return;
+    const action = btn.getAttribute('data-action');
+    if (action === 'inc') items[idx].qty += 1;
+    else if (action === 'dec') items[idx].qty = Math.max(1, items[idx].qty - 1);
+    else if (action === 'rm') items.splice(idx, 1);
+    saveCartItems(items);
+    updateCartBadges();
+    renderCartDrawer();
+  });
 }
 
 function buildShopCategoryList(activeSlug) {
@@ -927,6 +1106,13 @@ function initContact() {
   }
 
   const form = $('#contactForm');
+  if (messageInput) {
+    const cartNote = sessionStorage.getItem('ks_cart_note');
+    if (cartNote && !messageInput.value) {
+      messageInput.value = cartNote;
+      sessionStorage.removeItem('ks_cart_note');
+    }
+  }
   if (form) {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -1026,6 +1212,7 @@ function initContact() {
 document.addEventListener('DOMContentLoaded', () => {
   injectHeader();
   injectFooter();
+  initCartUI();
   initHome();
   initAllProducts();
   initCategory();
