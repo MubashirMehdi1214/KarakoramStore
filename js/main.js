@@ -389,7 +389,7 @@ function featuredProductCardHTML(product) {
         <p class="featured-price" data-price-for="${escapeHtml(product.id)}">${escapeHtml(formatPKR(defaultVariant.price))}</p>
         <div class="featured-card-actions">
           <a class="btn btn-order" href="${orderContactUrl(product, defaultVariant.id)}">Order with COD</a>
-          <a class="btn outline btn-detail" href="product.html?id=${encodeURIComponent(product.id)}">Details</a>
+          <button type="button" class="btn btn-add-cart" data-product-id="${escapeHtml(product.id)}" data-variant-id="${escapeHtml(defaultVariant.id)}">Add to cart</button>
         </div>
       </div>
     </article>
@@ -406,12 +406,14 @@ function bindFeaturedVariantSelects() {
     const qtySelect = card.querySelector('.featured-qty-select');
     const priceEl = card.querySelector('[data-price-for="' + productId + '"]');
     const orderBtn = card.querySelector('.btn-order');
+    const addBtn = card.querySelector('.btn-add-cart');
     const heroImg = card.querySelector('.featured-product-img');
 
     function updateFeatured() {
       const variant = getVariant(product, qtySelect.value);
       if (priceEl) priceEl.textContent = formatPKR(variant.price);
       if (orderBtn) orderBtn.href = orderContactUrl(product, variant.id);
+      if (addBtn) addBtn.setAttribute('data-variant-id', variant.id);
     }
 
     if (sizeSelect && qtySelect) {
@@ -427,6 +429,14 @@ function bindFeaturedVariantSelects() {
     }
 
     qtySelect && qtySelect.addEventListener('change', updateFeatured);
+    addBtn && addBtn.addEventListener('click', function() {
+      const variantId = addBtn.getAttribute('data-variant-id') || (qtySelect ? qtySelect.value : '');
+      addToCart(product.id, variantId, 1);
+      updateCartBadges();
+      const original = addBtn.textContent;
+      addBtn.textContent = 'Added';
+      setTimeout(function() { addBtn.textContent = original; }, 800);
+    });
     updateFeatured();
   });
 }

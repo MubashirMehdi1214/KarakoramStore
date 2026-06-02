@@ -2007,8 +2007,17 @@ body.cart-open { overflow: hidden; }
 }
 body.shop-sidebar-open { overflow: hidden; }
 
-.store-theme .btn { background: var(--brand-green); }
-.store-theme .btn:hover { background: var(--accent-hover); }
+.store-theme .btn:not(.outline) { background: var(--brand-green); }
+.store-theme .btn:not(.outline):hover { background: var(--accent-hover); }
+.store-theme .btn.outline {
+  background: transparent;
+  color: var(--brand-green);
+  border-color: var(--brand-green);
+}
+.store-theme .btn.outline:hover {
+  background: var(--brand-green);
+  color: #fff;
+}
 
 @media (max-width: 1100px) {
   .shop-grid.cols-4 { grid-template-columns: repeat(3, 1fr); }
