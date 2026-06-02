@@ -1729,12 +1729,18 @@ body.store-theme { background: #fff; }
   font-weight: 700;
   cursor: pointer;
   border-radius: 2px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .shop-view-btn.is-active,
 .shop-view-btn:hover {
   background: var(--nav-black);
   color: #fff;
   border-color: var(--nav-black);
+}
+
+.shop-view-btn:active {
+  transform: none !important;
 }
 
 .shop-grid {

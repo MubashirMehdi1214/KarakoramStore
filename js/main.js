@@ -588,8 +588,17 @@ function initShopPage(getProductList) {
 
   function applyAndRender() {
     const q = (getParam('q') || '').toLowerCase().trim();
-    const minP = inputMin ? parseInt(inputMin.value, 10) || 0 : 0;
-    const maxP = inputMax ? parseInt(inputMax.value, 10) || maxCatalog : maxCatalog;
+    // Robust parsing: on some mobile browsers input.value can be empty/non-numeric,
+    // which would make maxP/minP become NaN and filter items unexpectedly.
+    let minP = inputMin ? parseInt(inputMin.value, 10) : 0;
+    let maxP = inputMax ? parseInt(inputMax.value, 10) : maxCatalog;
+    if (isNaN(minP)) minP = 0;
+    if (isNaN(maxP)) maxP = maxCatalog;
+    if (maxP < minP) {
+      const tmp = minP;
+      minP = maxP;
+      maxP = tmp;
+    }
     const inStockOnly = !filterStock || filterStock.checked;
 
     let filtered = list.slice();
