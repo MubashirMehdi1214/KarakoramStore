@@ -7,62 +7,101 @@
   <meta name="description" content="Shop authentic Gilgiti caps and Himalayan shilajit. Cash on Delivery across Pakistan.">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body data-page="all-products" id="top">
+<body class="store-theme" data-page="all-products" id="top">
 
   <div id="site-header-host"></div>
 
-  <div class="shop-breadcrumb max-wrap">
+  <div class="shop-breadcrumb store-container">
     <a href="index.html">Home</a>
     <span aria-hidden="true">/</span>
     <span>All Products</span>
   </div>
 
-  <div class="shop-page max-wrap">
+  <div class="shop-page store-container">
     <aside class="shop-sidebar" id="shop-sidebar">
       <button type="button" class="shop-sidebar-close" id="shop-sidebar-close" aria-label="Close filters">&times;</button>
+
       <h2 class="shop-sidebar-title">Categories</h2>
       <ul class="shop-cat-list" id="shop-cat-list"></ul>
-      <hr class="shop-sidebar-hr">
-      <h3 class="shop-sidebar-sub">Payment</h3>
-      <ul class="shop-filter-list">
-        <li><span class="shop-filter-dot"></span> Cash on Delivery</li>
-        <li><span class="shop-filter-dot"></span> Easypaisa / JazzCash</li>
+
+      <div class="shop-refine-block">
+        <div class="shop-refine-head">
+          <h2 class="shop-sidebar-title">Refined by</h2>
+          <button type="button" class="shop-clear-btn" id="shop-clear-filters">Clear all</button>
+        </div>
+        <p class="shop-refine-count" id="shop-results-sidebar"></p>
+      </div>
+
+      <h3 class="shop-filter-heading">Availability</h3>
+      <ul class="shop-check-list">
+        <li>
+          <label class="shop-check-label">
+            <input type="checkbox" id="filter-in-stock" checked>
+            <span>In stock</span>
+            <span class="shop-check-count" id="count-in-stock"></span>
+          </label>
+        </li>
       </ul>
+
+      <h3 class="shop-filter-heading">Price</h3>
+      <div class="shop-price-filter">
+        <div class="shop-range-wrap">
+          <input type="range" id="price-range-min" class="shop-range" min="0" max="6000" value="0" aria-label="Minimum price">
+          <input type="range" id="price-range-max" class="shop-range" min="0" max="6000" value="6000" aria-label="Maximum price">
+        </div>
+        <div class="shop-price-inputs">
+          <span class="shop-price-currency">PKR</span>
+          <input type="number" id="price-input-min" min="0" max="6000" value="0" aria-label="Min price">
+          <span class="shop-price-to">to</span>
+          <span class="shop-price-currency">PKR</span>
+          <input type="number" id="price-input-max" min="0" max="6000" value="6000" aria-label="Max price">
+        </div>
+      </div>
+
       <hr class="shop-sidebar-hr">
-      <p class="shop-sidebar-note">Authentic products from Gilgit-Baltistan. Every order confirmed by call or WhatsApp.</p>
+      <h3 class="shop-filter-heading">Payment</h3>
+      <ul class="shop-check-list shop-check-list-plain">
+        <li>Cash on Delivery</li>
+        <li>Easypaisa / JazzCash</li>
+      </ul>
     </aside>
 
     <div class="shop-main">
-      <header class="shop-toolbar">
-        <div class="shop-toolbar-left">
-          <button type="button" class="btn outline shop-filter-btn" id="shop-filter-open">Filter</button>
+      <h1 class="shop-page-title">All Products</h1>
+
+      <div class="shop-toolbar-bar">
+        <div class="shop-toolbar-bar-left">
+          <button type="button" class="shop-filter-btn" id="shop-filter-open">Filter</button>
           <p class="shop-results" id="shop-results-count"></p>
         </div>
-        <div class="shop-toolbar-right">
-          <label class="shop-sort-label" for="shop-sort">Sort by</label>
-          <select id="shop-sort" class="shop-sort-select">
+        <div class="shop-toolbar-bar-right">
+          <div class="shop-view-as" aria-label="Grid layout">
+            <span class="shop-tool-label">View as</span>
+            <button type="button" class="shop-view-btn" data-cols="2" title="2 columns">2</button>
+            <button type="button" class="shop-view-btn" data-cols="3" title="3 columns">3</button>
+            <button type="button" class="shop-view-btn is-active" data-cols="4" title="4 columns">4</button>
+          </div>
+          <label class="shop-tool-label" for="shop-per-page">Items per page</label>
+          <select id="shop-per-page" class="shop-tool-select">
+            <option value="12">12</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+          </select>
+          <label class="shop-tool-label" for="shop-sort">Sort by</label>
+          <select id="shop-sort" class="shop-tool-select">
             <option value="featured">Featured</option>
             <option value="name-asc">Alphabetically, A–Z</option>
             <option value="price-asc">Price, low to high</option>
             <option value="price-desc">Price, high to low</option>
           </select>
         </div>
-      </header>
+      </div>
 
-      <form id="searchForm" class="shop-search" role="search">
-        <input id="searchInput" type="search" placeholder="Search Gilgiti cap, shilajit…" aria-label="Search products">
-        <button type="submit" class="btn">Search</button>
-      </form>
-
-      <h1 class="shop-page-title">All Products</h1>
-      <p class="shop-page-lead">Handmade Gilgiti caps &amp; pure Himalayan shilajit — <strong>Cash on Delivery</strong> nationwide.</p>
-
-      <div class="shop-grid" id="shop-products-grid"></div>
+      <div class="shop-grid cols-4" id="shop-products-grid"></div>
     </div>
   </div>
 
   <div id="shop-sidebar-backdrop" class="shop-sidebar-backdrop" hidden></div>
-
   <div id="site-footer-host"></div>
 
   <script src="js/site.js"></script>

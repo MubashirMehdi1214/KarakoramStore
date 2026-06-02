@@ -141,34 +141,43 @@ function injectHeader() {
   const isAbout = currentPage === 'about';
   const isContact = currentPage === 'contact';
 
+  const searchAction = isAll || currentPage === 'category'
+    ? ' onsubmit="event.preventDefault();var q=document.getElementById(\'header-search\').value.trim();window.location.href=\'all-products.html\'+(q?\'?q=\'+encodeURIComponent(q):\'\');"'
+    : ' action="all-products.html" method="get"';
+
   headerHost.innerHTML = `
-    <div class="promo-bar">
-      <span class="promo-bar-msg"><strong>${escapeHtml(s.codLabel)}</strong> — Pay when you receive · Gilgit-Baltistan authentic products</span>
-      <a class="promo-bar-phone" href="tel:${escapeHtml(s.phoneTel)}">${escapeHtml(s.phone)}</a>
+    <div class="store-topbar">
+      <span><strong>${escapeHtml(s.codLabel)}</strong> — Pay when you receive your order · Authentic Gilgit-Baltistan products</span>
     </div>
-    <header class="site-header">
-      <a class="site-logo" href="index.html" aria-label="KarakoramStore home">
-        <span class="logo-mark">K</span>
-        <span class="logo-text">
-          <strong>KarakoramStore</strong>
-          <span>Gilgit-Baltistan · Pakistan</span>
-        </span>
-      </a>
-    </header>
-    <nav class="main-nav" id="mainNav" aria-label="Main">
-      <div class="nav-inner">
-        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+    <div class="store-header">
+      <div class="store-header-inner store-container">
+        <a class="store-logo" href="index.html" aria-label="KarakoramStore home">
+          <span class="store-logo-text">karakoram</span>
+          <span class="store-logo-sub">store</span>
+        </a>
+        <div class="store-header-utils">
+          <p class="store-header-phone">Customer: <a href="tel:${escapeHtml(s.phoneTel)}">${escapeHtml(s.phone)}</a></p>
+          <form class="store-header-search"${searchAction} role="search">
+            <input type="search" name="q" id="header-search" placeholder="Search products…" aria-label="Search">
+            <button type="submit" aria-label="Search">&#128269;</button>
+          </form>
+          <a class="store-header-link" href="contact.html">Place Order</a>
+          <a class="store-header-link store-header-wa" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+        <button class="menu-toggle store-menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+      </div>
+    </div>
+    <nav class="store-nav" id="mainNav" aria-label="Main">
+      <div class="store-nav-inner store-container">
         <ul>
-          <li${isHome ? ' class="active"' : ''}><a href="index.html">Home</a></li>
           <li${isAll ? ' class="active"' : ''}><a href="all-products.html">All Products</a></li>
-          <li class="has-dropdown">
-            <a href="all-products.html">Categories</a>
-            <ul>${buildCategoryDropdown()}</ul>
-          </li>
-          <li${isAbout ? ' class="active"' : ''}><a href="about.html">About</a></li>
+          <li><a href="product.html?id=gilgiti-cap">Gilgiti Cap</a></li>
+          <li><a href="product.html?id=asli-aftabi-shilajit">Shilajit</a></li>
+          <li><a href="category.html?cat=traditional-wear">Traditional Wear</a></li>
+          <li><a href="category.html?cat=health-wellness">Health &amp; Wellness</a></li>
           <li${isContact ? ' class="active"' : ''}><a href="contact.html">Order / Contact</a></li>
+          <li${isAbout ? ' class="active"' : ''}><a href="about.html">About</a></li>
         </ul>
-        <a class="nav-whatsapp" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp</a>
       </div>
     </nav>
   `;
@@ -227,6 +236,9 @@ function injectFooter() {
       <div class="footer-bottom">&copy; ${new Date().getFullYear()} KarakoramStore &middot; All Rights Reserved &middot; <a href="admin.html" style="color:#9fa89f;">Orders dashboard</a></div>
     </footer>
     <a href="#top" class="back-to-top" id="backToTop" aria-label="Back to top">&#8593;</a>
+    <a class="float-whatsapp" href="${whatsappUrl()}" target="_blank" rel="noopener" aria-label="WhatsApp us">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </a>
   `;
 
   const backBtn = $('#backToTop');
@@ -391,9 +403,9 @@ function shopProductCardHTML(product) {
     ? getVariantsForSize(product, defaultSize.id)[0]
     : product.variants[0];
   const imgSrc = getProductImage(product, defaultSize ? defaultSize.id : null);
-  const excerpt = (product.excerpt || '').length > 120
-    ? product.excerpt.slice(0, 117) + '…'
-    : (product.excerpt || '');
+  const compare = getCompareAtPrice(defaultVariant.price);
+  const minPrice = getProductMinPrice(product);
+  const showFrom = getProductMinPrice(product) !== defaultVariant.price || product.variants.length > 1;
 
   let optionsBlock = '';
   if (productHasSizes(product)) {
@@ -401,22 +413,19 @@ function shopProductCardHTML(product) {
       return '<option value="' + escapeHtml(s.id) + '"' + (i === 0 ? ' selected' : '') + '>' + escapeHtml(s.label) + '</option>';
     }).join('');
     optionsBlock =
-      '<label class="shop-option-label">Size</label>' +
-      '<select class="shop-select shop-size-select" data-product-id="' + escapeHtml(product.id) + '">' + sizeOptions + '</select>' +
-      '<label class="shop-option-label">Quantity</label>' +
-      '<select class="shop-select shop-qty-select" data-product-id="' + escapeHtml(product.id) + '">' +
+      '<select class="shop-select shop-size-select" aria-label="Size" data-product-id="' + escapeHtml(product.id) + '">' + sizeOptions + '</select>' +
+      '<select class="shop-select shop-qty-select" aria-label="Quantity" data-product-id="' + escapeHtml(product.id) + '">' +
       buildVariantSelectOptions(product, defaultSize.id) + '</select>';
   } else {
     optionsBlock =
-      '<label class="shop-option-label">Option</label>' +
-      '<select class="shop-select shop-qty-select" data-product-id="' + escapeHtml(product.id) + '">' +
+      '<select class="shop-select shop-qty-select shop-select-full" aria-label="Option" data-product-id="' + escapeHtml(product.id) + '">' +
       buildVariantSelectOptions(product) + '</select>';
   }
 
   return (
-    '<article class="shop-card" data-product-id="' + escapeHtml(product.id) + '">' +
+    '<article class="shop-card" data-product-id="' + escapeHtml(product.id) + '" data-min-price="' + minPrice + '">' +
       '<div class="shop-card-media">' +
-        '<span class="shop-badge">COD</span>' +
+        '<span class="shop-badge shop-badge-sale">Sale</span>' +
         '<a class="shop-card-img-link" href="product.html?id=' + encodeURIComponent(product.id) + '">' +
           '<img class="shop-card-img" src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(product.title) + '" loading="lazy">' +
         '</a>' +
@@ -425,15 +434,13 @@ function shopProductCardHTML(product) {
       '<div class="shop-card-body">' +
         '<p class="shop-vendor">KarakoramStore</p>' +
         '<h3 class="shop-card-title"><a href="product.html?id=' + encodeURIComponent(product.id) + '">' + escapeHtml(product.title) + '</a></h3>' +
-        '<p class="shop-card-excerpt">' + escapeHtml(excerpt) + '</p>' +
         '<div class="shop-card-price">' +
-          '<span class="shop-price-from">' + escapeHtml(getProductPriceDisplay(product)) + '</span>' +
+          (showFrom ? '<span class="shop-price-prefix">From </span>' : '') +
+          '<span class="shop-price-compare">' + escapeHtml(formatPKR(compare)) + '</span>' +
+          '<span class="shop-price-sale">' + escapeHtml(formatPKR(defaultVariant.price)) + '</span>' +
         '</div>' +
         '<div class="shop-card-options">' + optionsBlock + '</div>' +
-        '<div class="shop-card-actions">' +
-          '<a class="btn shop-order-btn" href="' + orderContactUrl(product, defaultVariant.id) + '">Order now</a>' +
-          '<a class="btn outline shop-detail-btn" href="product.html?id=' + encodeURIComponent(product.id) + '">Details</a>' +
-        '</div>' +
+        '<a class="btn shop-add-btn shop-order-btn" href="' + orderContactUrl(product, defaultVariant.id) + '">Add</a>' +
       '</div>' +
     '</article>'
   );
@@ -449,10 +456,14 @@ function bindShopProductCards() {
     const qtySelect = card.querySelector('.shop-qty-select');
     const orderBtn = card.querySelector('.shop-order-btn');
     const heroImg = card.querySelector('.shop-card-img');
+    const compareEl = card.querySelector('.shop-price-compare');
+    const saleEl = card.querySelector('.shop-price-sale');
 
     function updateCard() {
       const variant = getVariant(product, qtySelect.value);
       if (orderBtn) orderBtn.href = orderContactUrl(product, variant.id);
+      if (compareEl) compareEl.textContent = formatPKR(getCompareAtPrice(variant.price));
+      if (saleEl) saleEl.textContent = formatPKR(variant.price);
     }
 
     if (sizeSelect && qtySelect) {
@@ -471,22 +482,33 @@ function bindShopProductCards() {
   });
 }
 
-function renderShopGrid(products) {
+function renderShopGrid(products, totalCount) {
   const grid = $('#shop-products-grid');
   const countEl = $('#shop-results-count');
+  const sidebarCount = $('#shop-results-sidebar');
+  const count = totalCount != null ? totalCount : products.length;
+  const label = count + ' result' + (count === 1 ? '' : 's');
   if (!grid) return;
   if (!products.length) {
-    grid.innerHTML = '<p class="shop-empty">No products match your search. <a href="all-products.html">View all products</a></p>';
-    if (countEl) countEl.textContent = '0 products';
+    grid.innerHTML = '<p class="shop-empty">No products match your filters. <a href="all-products.html">View all products</a></p>';
+    if (countEl) countEl.textContent = '0 results';
+    if (sidebarCount) sidebarCount.textContent = '0 results';
     return;
   }
   grid.innerHTML = products.map(shopProductCardHTML).join('');
-  if (countEl) countEl.textContent = products.length + ' product' + (products.length === 1 ? '' : 's');
+  if (countEl) countEl.textContent = label;
+  if (sidebarCount) sidebarCount.textContent = label;
   bindShopProductCards();
+}
+
+function getCatalogMaxPrice() {
+  return Math.max.apply(null, PRODUCTS.map(function(p) { return getProductMaxPrice(p); }));
 }
 
 function buildShopCategoryList(activeSlug) {
   const items = ['<li><a class="shop-cat-link' + (!activeSlug ? ' is-active' : '') + '" href="all-products.html">All Products</a></li>'];
+  items.push('<li><a class="shop-cat-link" href="product.html?id=gilgiti-cap">Gilgiti Cap</a></li>');
+  items.push('<li><a class="shop-cat-link" href="product.html?id=asli-aftabi-shilajit">Shilajit</a></li>');
   CATEGORIES.forEach(function(c) {
     const active = activeSlug === c.slug ? ' is-active' : '';
     items.push('<li><a class="shop-cat-link' + active + '" href="category.html?cat=' + encodeURIComponent(c.slug) + '">' + escapeHtml(c.label) + '</a></li>');
@@ -520,43 +542,107 @@ function initShopPage(getProductList) {
 
   const catList = $('#shop-cat-list');
   const sortSelect = $('#shop-sort');
-  const activeCat = page === 'category' ? (getParam('cat') || '') : (getParam('cat') || '');
+  const perPageSelect = $('#shop-per-page');
+  const grid = $('#shop-products-grid');
+  const activeCat = page === 'category' ? (getParam('cat') || '') : '';
+  const maxCatalog = getCatalogMaxPrice();
+  const rangeMin = $('#price-range-min');
+  const rangeMax = $('#price-range-max');
+  const inputMin = $('#price-input-min');
+  const inputMax = $('#price-input-max');
+  const filterStock = $('#filter-in-stock');
+  const countStock = $('#count-in-stock');
+  const clearBtn = $('#shop-clear-filters');
+  const headerSearch = $('#header-search');
 
   if (catList) catList.innerHTML = buildShopCategoryList(activeCat);
 
-  let list = getProductList();
+  const list = getProductList();
+  if (countStock) countStock.textContent = '(' + list.length + ')';
+
+  [rangeMin, rangeMax, inputMin, inputMax].forEach(function(el) {
+    if (!el) return;
+    if (el.id.indexOf('max') !== -1) {
+      el.max = maxCatalog;
+      el.value = maxCatalog;
+    } else if (el.id.indexOf('min') !== -1) {
+      el.max = maxCatalog;
+      el.value = 0;
+    }
+  });
+
+  const qParam = getParam('q');
+  if (headerSearch && qParam) headerSearch.value = qParam;
 
   function applyAndRender() {
-    const q = ($('#searchInput') || {}).value ? $('#searchInput').value.toLowerCase().trim() : (getParam('q') || '').toLowerCase().trim();
+    const q = (getParam('q') || '').toLowerCase().trim();
+    const minP = inputMin ? parseInt(inputMin.value, 10) || 0 : 0;
+    const maxP = inputMax ? parseInt(inputMax.value, 10) || maxCatalog : maxCatalog;
+    const inStockOnly = !filterStock || filterStock.checked;
+
     let filtered = list.slice();
     if (q) {
       filtered = filtered.filter(function(p) {
         return p.title.toLowerCase().includes(q) || (p.excerpt || '').toLowerCase().includes(q);
       });
     }
+    filtered = filtered.filter(function(p) {
+      const min = getProductMinPrice(p);
+      return min >= minP && min <= maxP;
+    });
+    if (!inStockOnly) filtered = [];
+
     const sortKey = sortSelect ? sortSelect.value : 'featured';
-    renderShopGrid(sortProducts(filtered, sortKey));
+    const sorted = sortProducts(filtered, sortKey);
+    const perPage = perPageSelect ? parseInt(perPageSelect.value, 10) || 20 : 20;
+    renderShopGrid(sorted.slice(0, perPage), filtered.length);
+  }
+
+  function syncPriceFromRange() {
+    if (rangeMin && inputMin) inputMin.value = rangeMin.value;
+    if (rangeMax && inputMax) inputMax.value = rangeMax.value;
+    applyAndRender();
+  }
+
+  function syncRangeFromInput() {
+    if (rangeMin && inputMin) rangeMin.value = Math.min(parseInt(inputMin.value, 10) || 0, maxCatalog);
+    if (rangeMax && inputMax) rangeMax.value = Math.min(parseInt(inputMax.value, 10) || maxCatalog, maxCatalog);
+    applyAndRender();
   }
 
   applyAndRender();
   initShopSidebar();
 
   if (sortSelect) sortSelect.addEventListener('change', applyAndRender);
+  if (perPageSelect) perPageSelect.addEventListener('change', applyAndRender);
+  if (filterStock) filterStock.addEventListener('change', applyAndRender);
+  if (rangeMin) rangeMin.addEventListener('input', syncPriceFromRange);
+  if (rangeMax) rangeMax.addEventListener('input', syncPriceFromRange);
+  if (inputMin) inputMin.addEventListener('change', syncRangeFromInput);
+  if (inputMax) inputMax.addEventListener('change', syncRangeFromInput);
 
-  const searchForm = $('#searchForm');
-  if (searchForm) {
-    const input = $('#searchInput');
-    const qParam = getParam('q');
-    if (input && qParam) input.value = qParam;
-    searchForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const val = input ? input.value.trim() : '';
-      const base = page === 'category'
-        ? 'category.html?cat=' + encodeURIComponent(getParam('cat') || 'traditional-wear')
-        : 'all-products.html';
-      window.location.href = base + (val ? (base.indexOf('?') >= 0 ? '&' : '?') + 'q=' + encodeURIComponent(val) : '');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      if (filterStock) filterStock.checked = true;
+      if (rangeMin) rangeMin.value = 0;
+      if (rangeMax) rangeMax.value = maxCatalog;
+      if (inputMin) inputMin.value = 0;
+      if (inputMax) inputMax.value = maxCatalog;
+      if (sortSelect) sortSelect.value = 'featured';
+      applyAndRender();
     });
   }
+
+  $$('.shop-view-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      $$('.shop-view-btn').forEach(function(b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      if (grid) {
+        grid.classList.remove('cols-2', 'cols-3', 'cols-4');
+        grid.classList.add('cols-' + btn.dataset.cols);
+      }
+    });
+  });
 }
 
 /* ---------- Home page ---------- */

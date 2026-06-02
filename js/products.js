@@ -117,6 +117,15 @@ function getProductPriceDisplay(product) {
   return "From " + formatPKR(min);
 }
 
+function getProductMaxPrice(product) {
+  if (!product.variants || !product.variants.length) return 0;
+  return Math.max.apply(null, product.variants.map(function(v) { return v.price; }));
+}
+
+function getCompareAtPrice(price) {
+  return Math.round(Number(price) * 1.12 / 50) * 50;
+}
+
 function getVariantsSummary(product) {
   if (productHasSizes(product)) {
     return "Elders & Kids · 1, 2, 3 or 5 caps";
@@ -128,6 +137,7 @@ function getVariantsSummary(product) {
 if (typeof module !== "undefined") {
   module.exports = {
     PRODUCTS, CATEGORIES, formatPKR, productHasSizes, getSize, getVariantsForSize,
-    getVariant, getVariantLabel, getProductImage, getProductPriceDisplay, getVariantsSummary
+    getVariant, getVariantLabel, getProductImage, getProductPriceDisplay, getProductMaxPrice,
+    getCompareAtPrice, getVariantsSummary
   };
 }
