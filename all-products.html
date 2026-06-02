@@ -4,30 +4,64 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>All Products - KarakoramStore</title>
+  <meta name="description" content="Shop authentic Gilgiti caps and Himalayan shilajit. Cash on Delivery across Pakistan.">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-page="all-products" id="top">
 
   <div id="site-header-host"></div>
 
-  <section class="page-hero-compact">
-    <div class="max-wrap">
-      <span class="pill pill-cod">Cash on Delivery</span>
-      <h1>All Products</h1>
-      <p>Gilgiti caps (1–5 pcs) and shilajit (250g–1kg). Pay cash on delivery.</p>
+  <div class="shop-breadcrumb max-wrap">
+    <a href="index.html">Home</a>
+    <span aria-hidden="true">/</span>
+    <span>All Products</span>
+  </div>
+
+  <div class="shop-page max-wrap">
+    <aside class="shop-sidebar" id="shop-sidebar">
+      <button type="button" class="shop-sidebar-close" id="shop-sidebar-close" aria-label="Close filters">&times;</button>
+      <h2 class="shop-sidebar-title">Categories</h2>
+      <ul class="shop-cat-list" id="shop-cat-list"></ul>
+      <hr class="shop-sidebar-hr">
+      <h3 class="shop-sidebar-sub">Payment</h3>
+      <ul class="shop-filter-list">
+        <li><span class="shop-filter-dot"></span> Cash on Delivery</li>
+        <li><span class="shop-filter-dot"></span> Easypaisa / JazzCash</li>
+      </ul>
+      <hr class="shop-sidebar-hr">
+      <p class="shop-sidebar-note">Authentic products from Gilgit-Baltistan. Every order confirmed by call or WhatsApp.</p>
+    </aside>
+
+    <div class="shop-main">
+      <header class="shop-toolbar">
+        <div class="shop-toolbar-left">
+          <button type="button" class="btn outline shop-filter-btn" id="shop-filter-open">Filter</button>
+          <p class="shop-results" id="shop-results-count"></p>
+        </div>
+        <div class="shop-toolbar-right">
+          <label class="shop-sort-label" for="shop-sort">Sort by</label>
+          <select id="shop-sort" class="shop-sort-select">
+            <option value="featured">Featured</option>
+            <option value="name-asc">Alphabetically, A–Z</option>
+            <option value="price-asc">Price, low to high</option>
+            <option value="price-desc">Price, high to low</option>
+          </select>
+        </div>
+      </header>
+
+      <form id="searchForm" class="shop-search" role="search">
+        <input id="searchInput" type="search" placeholder="Search Gilgiti cap, shilajit…" aria-label="Search products">
+        <button type="submit" class="btn">Search</button>
+      </form>
+
+      <h1 class="shop-page-title">All Products</h1>
+      <p class="shop-page-lead">Handmade Gilgiti caps &amp; pure Himalayan shilajit — <strong>Cash on Delivery</strong> nationwide.</p>
+
+      <div class="shop-grid" id="shop-products-grid"></div>
     </div>
-  </section>
+  </div>
 
-  <section class="section">
-    <div class="section-title"><h2>Shop<span id="current-query"></span></h2></div>
-
-    <form id="searchForm" class="search-box" role="search" style="max-width:520px;margin:0 auto 36px;background:#fff;border-radius:100px;padding:6px;display:flex;align-items:center;box-shadow:var(--shadow);">
-      <input id="searchInput" type="search" placeholder="Search products..." aria-label="Search" style="flex:1;border:0;outline:0;background:transparent;padding:12px 18px;font-family:inherit;font-size:15px;">
-      <button type="submit" style="background:var(--accent);color:#fff;border:0;border-radius:100px;padding:12px 26px;font-family:inherit;font-weight:700;cursor:pointer;">Search</button>
-    </form>
-
-    <div class="product-grid" id="all-products-grid"></div>
-  </section>
+  <div id="shop-sidebar-backdrop" class="shop-sidebar-backdrop" hidden></div>
 
   <div id="site-footer-host"></div>
 

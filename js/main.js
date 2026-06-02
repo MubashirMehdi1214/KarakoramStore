@@ -142,7 +142,10 @@ function injectHeader() {
   const isContact = currentPage === 'contact';
 
   headerHost.innerHTML = `
-    <div class="header-cod-strip">${escapeHtml(s.codLabel)} available — pay when you receive</div>
+    <div class="promo-bar">
+      <span class="promo-bar-msg"><strong>${escapeHtml(s.codLabel)}</strong> — Pay when you receive · Gilgit-Baltistan authentic products</span>
+      <a class="promo-bar-phone" href="tel:${escapeHtml(s.phoneTel)}">${escapeHtml(s.phone)}</a>
+    </div>
     <header class="site-header">
       <a class="site-logo" href="index.html" aria-label="KarakoramStore home">
         <span class="logo-mark">K</span>
@@ -157,8 +160,9 @@ function injectHeader() {
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
         <ul>
           <li${isHome ? ' class="active"' : ''}><a href="index.html">Home</a></li>
-          <li class="has-dropdown${isAll ? ' active' : ''}">
-            <a href="all-products.html">Shop</a>
+          <li${isAll ? ' class="active"' : ''}><a href="all-products.html">All Products</a></li>
+          <li class="has-dropdown">
+            <a href="all-products.html">Categories</a>
             <ul>${buildCategoryDropdown()}</ul>
           </li>
           <li${isAbout ? ' class="active"' : ''}><a href="about.html">About</a></li>
@@ -364,6 +368,197 @@ function renderProductGrid(containerSel, products, limit) {
     '<p style="grid-column:1/-1;text-align:center;color:#999;">No products found.</p>';
 }
 
+function getProductMinPrice(product) {
+  if (!product.variants || !product.variants.length) return 0;
+  return Math.min.apply(null, product.variants.map(function(v) { return v.price; }));
+}
+
+function sortProducts(list, sortKey) {
+  const sorted = list.slice();
+  if (sortKey === 'name-asc') {
+    sorted.sort(function(a, b) { return a.title.localeCompare(b.title); });
+  } else if (sortKey === 'price-asc') {
+    sorted.sort(function(a, b) { return getProductMinPrice(a) - getProductMinPrice(b); });
+  } else if (sortKey === 'price-desc') {
+    sorted.sort(function(a, b) { return getProductMinPrice(b) - getProductMinPrice(a); });
+  }
+  return sorted;
+}
+
+function shopProductCardHTML(product) {
+  const defaultSize = productHasSizes(product) ? product.sizes[0] : null;
+  const defaultVariant = productHasSizes(product)
+    ? getVariantsForSize(product, defaultSize.id)[0]
+    : product.variants[0];
+  const imgSrc = getProductImage(product, defaultSize ? defaultSize.id : null);
+  const excerpt = (product.excerpt || '').length > 120
+    ? product.excerpt.slice(0, 117) + '…'
+    : (product.excerpt || '');
+
+  let optionsBlock = '';
+  if (productHasSizes(product)) {
+    const sizeOptions = product.sizes.map(function(s, i) {
+      return '<option value="' + escapeHtml(s.id) + '"' + (i === 0 ? ' selected' : '') + '>' + escapeHtml(s.label) + '</option>';
+    }).join('');
+    optionsBlock =
+      '<label class="shop-option-label">Size</label>' +
+      '<select class="shop-select shop-size-select" data-product-id="' + escapeHtml(product.id) + '">' + sizeOptions + '</select>' +
+      '<label class="shop-option-label">Quantity</label>' +
+      '<select class="shop-select shop-qty-select" data-product-id="' + escapeHtml(product.id) + '">' +
+      buildVariantSelectOptions(product, defaultSize.id) + '</select>';
+  } else {
+    optionsBlock =
+      '<label class="shop-option-label">Option</label>' +
+      '<select class="shop-select shop-qty-select" data-product-id="' + escapeHtml(product.id) + '">' +
+      buildVariantSelectOptions(product) + '</select>';
+  }
+
+  return (
+    '<article class="shop-card" data-product-id="' + escapeHtml(product.id) + '">' +
+      '<div class="shop-card-media">' +
+        '<span class="shop-badge">COD</span>' +
+        '<a class="shop-card-img-link" href="product.html?id=' + encodeURIComponent(product.id) + '">' +
+          '<img class="shop-card-img" src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(product.title) + '" loading="lazy">' +
+        '</a>' +
+        '<a class="shop-quick-view" href="product.html?id=' + encodeURIComponent(product.id) + '">Quick view</a>' +
+      '</div>' +
+      '<div class="shop-card-body">' +
+        '<p class="shop-vendor">KarakoramStore</p>' +
+        '<h3 class="shop-card-title"><a href="product.html?id=' + encodeURIComponent(product.id) + '">' + escapeHtml(product.title) + '</a></h3>' +
+        '<p class="shop-card-excerpt">' + escapeHtml(excerpt) + '</p>' +
+        '<div class="shop-card-price">' +
+          '<span class="shop-price-from">' + escapeHtml(getProductPriceDisplay(product)) + '</span>' +
+        '</div>' +
+        '<div class="shop-card-options">' + optionsBlock + '</div>' +
+        '<div class="shop-card-actions">' +
+          '<a class="btn shop-order-btn" href="' + orderContactUrl(product, defaultVariant.id) + '">Order now</a>' +
+          '<a class="btn outline shop-detail-btn" href="product.html?id=' + encodeURIComponent(product.id) + '">Details</a>' +
+        '</div>' +
+      '</div>' +
+    '</article>'
+  );
+}
+
+function bindShopProductCards() {
+  $$('.shop-card').forEach(function(card) {
+    const productId = card.dataset.productId;
+    const product = PRODUCTS.find(function(p) { return p.id === productId; });
+    if (!product) return;
+
+    const sizeSelect = card.querySelector('.shop-size-select');
+    const qtySelect = card.querySelector('.shop-qty-select');
+    const orderBtn = card.querySelector('.shop-order-btn');
+    const heroImg = card.querySelector('.shop-card-img');
+
+    function updateCard() {
+      const variant = getVariant(product, qtySelect.value);
+      if (orderBtn) orderBtn.href = orderContactUrl(product, variant.id);
+    }
+
+    if (sizeSelect && qtySelect) {
+      sizeSelect.addEventListener('change', function() {
+        const sizeId = sizeSelect.value;
+        qtySelect.innerHTML = buildVariantSelectOptions(product, sizeId);
+        if (heroImg) {
+          heroImg.src = getProductImage(product, sizeId);
+          heroImg.alt = product.title + ' — ' + getSize(product, sizeId).label;
+        }
+        updateCard();
+      });
+    }
+    qtySelect && qtySelect.addEventListener('change', updateCard);
+    updateCard();
+  });
+}
+
+function renderShopGrid(products) {
+  const grid = $('#shop-products-grid');
+  const countEl = $('#shop-results-count');
+  if (!grid) return;
+  if (!products.length) {
+    grid.innerHTML = '<p class="shop-empty">No products match your search. <a href="all-products.html">View all products</a></p>';
+    if (countEl) countEl.textContent = '0 products';
+    return;
+  }
+  grid.innerHTML = products.map(shopProductCardHTML).join('');
+  if (countEl) countEl.textContent = products.length + ' product' + (products.length === 1 ? '' : 's');
+  bindShopProductCards();
+}
+
+function buildShopCategoryList(activeSlug) {
+  const items = ['<li><a class="shop-cat-link' + (!activeSlug ? ' is-active' : '') + '" href="all-products.html">All Products</a></li>'];
+  CATEGORIES.forEach(function(c) {
+    const active = activeSlug === c.slug ? ' is-active' : '';
+    items.push('<li><a class="shop-cat-link' + active + '" href="category.html?cat=' + encodeURIComponent(c.slug) + '">' + escapeHtml(c.label) + '</a></li>');
+  });
+  return items.join('');
+}
+
+function initShopSidebar() {
+  const sidebar = $('#shop-sidebar');
+  const backdrop = $('#shop-sidebar-backdrop');
+  const openBtn = $('#shop-filter-open');
+  const closeBtn = $('#shop-sidebar-close');
+  function open() {
+    if (sidebar) sidebar.classList.add('is-open');
+    if (backdrop) backdrop.hidden = false;
+    document.body.classList.add('shop-sidebar-open');
+  }
+  function close() {
+    if (sidebar) sidebar.classList.remove('is-open');
+    if (backdrop) backdrop.hidden = true;
+    document.body.classList.remove('shop-sidebar-open');
+  }
+  openBtn && openBtn.addEventListener('click', open);
+  closeBtn && closeBtn.addEventListener('click', close);
+  backdrop && backdrop.addEventListener('click', close);
+}
+
+function initShopPage(getProductList) {
+  const page = document.body.dataset.page;
+  if (page !== 'all-products' && page !== 'category') return;
+
+  const catList = $('#shop-cat-list');
+  const sortSelect = $('#shop-sort');
+  const activeCat = page === 'category' ? (getParam('cat') || '') : (getParam('cat') || '');
+
+  if (catList) catList.innerHTML = buildShopCategoryList(activeCat);
+
+  let list = getProductList();
+
+  function applyAndRender() {
+    const q = ($('#searchInput') || {}).value ? $('#searchInput').value.toLowerCase().trim() : (getParam('q') || '').toLowerCase().trim();
+    let filtered = list.slice();
+    if (q) {
+      filtered = filtered.filter(function(p) {
+        return p.title.toLowerCase().includes(q) || (p.excerpt || '').toLowerCase().includes(q);
+      });
+    }
+    const sortKey = sortSelect ? sortSelect.value : 'featured';
+    renderShopGrid(sortProducts(filtered, sortKey));
+  }
+
+  applyAndRender();
+  initShopSidebar();
+
+  if (sortSelect) sortSelect.addEventListener('change', applyAndRender);
+
+  const searchForm = $('#searchForm');
+  if (searchForm) {
+    const input = $('#searchInput');
+    const qParam = getParam('q');
+    if (input && qParam) input.value = qParam;
+    searchForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const val = input ? input.value.trim() : '';
+      const base = page === 'category'
+        ? 'category.html?cat=' + encodeURIComponent(getParam('cat') || 'traditional-wear')
+        : 'all-products.html';
+      window.location.href = base + (val ? (base.indexOf('?') >= 0 ? '&' : '?') + 'q=' + encodeURIComponent(val) : '');
+    });
+  }
+}
+
 /* ---------- Home page ---------- */
 function initHome() {
   if (document.body.dataset.page !== 'home') return;
@@ -384,42 +579,28 @@ function initHome() {
   }
 }
 
-/* ---------- All products page ---------- */
+/* ---------- All products / category shop ---------- */
 function initAllProducts() {
-  if (document.body.dataset.page !== 'all-products') return;
-  const q = (getParam('q') || '').toLowerCase().trim();
-  let list = PRODUCTS.slice();
-  if (q) {
-    list = list.filter(p => p.title.toLowerCase().includes(q) || (p.excerpt || '').toLowerCase().includes(q));
-    const qEl = $('#current-query');
-    if (qEl) qEl.textContent = ' matching "' + q + '"';
-    const input = $('#searchInput');
-    if (input) input.value = q;
-  }
-  renderProductGrid('#all-products-grid', list);
-
-  const searchForm = $('#searchForm');
-  searchForm && searchForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const val = $('#searchInput').value.trim();
-    window.location.href = 'all-products.html' + (val ? '?q=' + encodeURIComponent(val) : '');
-  });
+  initShopPage(function() { return PRODUCTS.slice(); });
 }
 
-/* ---------- Category page ---------- */
 function initCategory() {
-  if (document.body.dataset.page !== 'category') return;
   const slug = getParam('cat') || 'traditional-wear';
-  const cat = CATEGORIES.find(c => c.slug === slug);
+  const cat = CATEGORIES.find(function(c) { return c.slug === slug; });
   const title = $('#cat-title');
   const desc = $('#cat-description');
+  const breadcrumbCat = $('#breadcrumb-cat');
   if (title) title.textContent = cat ? cat.label : 'Category';
-  if (desc) desc.textContent = cat
-    ? 'Browse our collection of ' + cat.label.toLowerCase() + ' from the Karakoram region. Cash on Delivery available.'
-    : '';
+  if (breadcrumbCat) breadcrumbCat.textContent = cat ? cat.label : 'Category';
+  if (desc) {
+    desc.textContent = cat
+      ? 'Browse ' + cat.label.toLowerCase() + ' from Gilgit-Baltistan. Cash on Delivery across Pakistan.'
+      : '';
+  }
   document.title = (cat ? cat.label : 'Category') + ' - KarakoramStore';
-  const items = PRODUCTS.filter(p => p.categories.includes(slug));
-  renderProductGrid('#category-grid', items);
+  initShopPage(function() {
+    return PRODUCTS.filter(function(p) { return p.categories.includes(slug); });
+  });
 }
 
 /* ---------- Product detail page ---------- */
@@ -447,7 +628,12 @@ function initProductDetail() {
     return '<p>' + escapeHtml(p) + '</p>';
   }).join('');
 
-  const defaultSize = productHasSizes(product) ? product.sizes[0].id : null;
+  const sizeParam = getParam('size');
+  let defaultSize = productHasSizes(product) ? product.sizes[0].id : null;
+  if (productHasSizes(product) && sizeParam) {
+    const match = product.sizes.find(function(s) { return s.id === sizeParam; });
+    if (match) defaultSize = match.id;
+  }
   const defaultVariant = productHasSizes(product)
     ? getVariantsForSize(product, defaultSize)[0]
     : product.variants[0];
@@ -507,6 +693,21 @@ function initProductDetail() {
 
   const orderBtn = $('#order-btn');
   const waBtn = $('#wa-order-btn');
+
+  if (productHasSizes(product) && sizeParam) {
+    const sizeSelectEl = wrap.querySelector('#size-select');
+    if (sizeSelectEl) sizeSelectEl.value = defaultSize;
+    const variantSelectEl = wrap.querySelector('#variant-select');
+    if (variantSelectEl) {
+      variantSelectEl.innerHTML = buildVariantSelectOptions(product, defaultSize);
+      variantSelectEl.value = defaultVariant.id;
+    }
+    const heroImg = wrap.querySelector('#product-hero-img');
+    if (heroImg) {
+      heroImg.src = getProductImage(product, defaultSize);
+      heroImg.alt = product.title + ' — ' + getSize(product, defaultSize).label;
+    }
+  }
 
   bindProductOptionControls(wrap, product, {
     onChange: function(variant, sizeId) {

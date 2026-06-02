@@ -10,11 +10,48 @@
 
   <div id="site-header-host"></div>
 
-  <section class="section">
-    <div class="section-title"><h2 id="cat-title">Category</h2></div>
-    <p id="cat-description" style="text-align:center;max-width:680px;margin:-20px auto 36px;color:var(--contrast-3);"></p>
-    <div class="product-grid" id="category-grid"></div>
-  </section>
+  <div class="shop-breadcrumb max-wrap">
+    <a href="index.html">Home</a>
+    <span aria-hidden="true">/</span>
+    <a href="all-products.html">All Products</a>
+    <span aria-hidden="true">/</span>
+    <span id="breadcrumb-cat">Category</span>
+  </div>
+
+  <div class="shop-page max-wrap">
+    <aside class="shop-sidebar" id="shop-sidebar">
+      <button type="button" class="shop-sidebar-close" id="shop-sidebar-close" aria-label="Close filters">&times;</button>
+      <h2 class="shop-sidebar-title">Categories</h2>
+      <ul class="shop-cat-list" id="shop-cat-list"></ul>
+      <hr class="shop-sidebar-hr">
+      <p class="shop-sidebar-note">Cash on Delivery across Pakistan.</p>
+    </aside>
+
+    <div class="shop-main">
+      <header class="shop-toolbar">
+        <div class="shop-toolbar-left">
+          <button type="button" class="btn outline shop-filter-btn" id="shop-filter-open">Filter</button>
+          <p class="shop-results" id="shop-results-count"></p>
+        </div>
+        <div class="shop-toolbar-right">
+          <label class="shop-sort-label" for="shop-sort">Sort by</label>
+          <select id="shop-sort" class="shop-sort-select">
+            <option value="featured">Featured</option>
+            <option value="name-asc">Alphabetically, A–Z</option>
+            <option value="price-asc">Price, low to high</option>
+            <option value="price-desc">Price, high to low</option>
+          </select>
+        </div>
+      </header>
+
+      <h1 class="shop-page-title" id="cat-title">Category</h1>
+      <p class="shop-page-lead" id="cat-description"></p>
+
+      <div class="shop-grid" id="shop-products-grid"></div>
+    </div>
+  </div>
+
+  <div id="shop-sidebar-backdrop" class="shop-sidebar-backdrop" hidden></div>
 
   <div id="site-footer-host"></div>
 
