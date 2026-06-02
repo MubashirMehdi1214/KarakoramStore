@@ -166,6 +166,17 @@ function injectHeader() {
         </div>
         <button class="menu-toggle store-menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
       </div>
+      <div class="store-header-mobile store-container">
+        <form class="store-header-search store-header-search--mobile"${searchAction} role="search">
+          <input type="search" name="q" id="header-search-mobile" placeholder="Search products…" aria-label="Search">
+          <button type="submit" aria-label="Search">&#128269;</button>
+        </form>
+        <div class="store-header-mobile-actions">
+          <a class="store-mobile-chip" href="tel:${escapeHtml(s.phoneTel)}">Call</a>
+          <a class="store-mobile-chip" href="contact.html">Order</a>
+          <a class="store-mobile-chip store-mobile-chip--wa" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </div>
     </div>
     <nav class="store-nav" id="mainNav" aria-label="Main">
       <div class="store-nav-inner store-container">
@@ -187,6 +198,7 @@ function injectHeader() {
   toggle && toggle.addEventListener('click', () => {
     const open = nav.classList.toggle('is-open');
     toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.body.classList.toggle('nav-open', open);
   });
   $$('#mainNav li.has-dropdown > a').forEach(a => {
     a.addEventListener('click', (e) => {
