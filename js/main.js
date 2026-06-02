@@ -466,7 +466,33 @@ function sortProducts(list, sortKey) {
   return sorted;
 }
 
+function expandProductsForAll(list) {
+  const expanded = [];
+  list.forEach(function(p) {
+    if (productHasSizes(p)) {
+      p.sizes.forEach(function(size) {
+        expanded.push({
+          id: p.id + '-' + size.id,
+          _sourceId: p.id,
+          _forcedSize: size.id,
+          title: p.title + ' (' + size.label + ')',
+          excerpt: p.excerpt,
+          image: getProductImage(p, size.id),
+          variants: getVariantsForSize(p, size.id).map(function(v) { return Object.assign({}, v); }),
+          categories: p.categories,
+          cover: p.cover
+        });
+      });
+    } else {
+      expanded.push(Object.assign({ _sourceId: p.id }, p));
+    }
+  });
+  return expanded;
+}
+
 function shopProductCardHTML(product) {
+  const sourceId = product._sourceId || product.id;
+  const detailUrl = 'product.html?id=' + encodeURIComponent(sourceId) + (product._forcedSize ? '&size=' + encodeURIComponent(product._forcedSize) : '');
   const defaultSize = productHasSizes(product) ? product.sizes[0] : null;
   const defaultVariant = productHasSizes(product)
     ? getVariantsForSize(product, defaultSize.id)[0]
@@ -492,24 +518,24 @@ function shopProductCardHTML(product) {
   }
 
   return (
-    '<article class="shop-card" data-product-id="' + escapeHtml(product.id) + '" data-min-price="' + minPrice + '">' +
+    '<article class="shop-card" data-product-id="' + escapeHtml(product.id) + '" data-source-id="' + escapeHtml(sourceId) + '" data-min-price="' + minPrice + '">' +
       '<div class="shop-card-media">' +
         '<span class="shop-badge shop-badge-sale">Sale</span>' +
-        '<a class="shop-card-img-link" href="product.html?id=' + encodeURIComponent(product.id) + '">' +
+        '<a class="shop-card-img-link" href="' + detailUrl + '">' +
           '<img class="shop-card-img" src="' + escapeHtml(imgSrc) + '" alt="' + escapeHtml(product.title) + '" loading="lazy">' +
         '</a>' +
-        '<a class="shop-quick-view" href="product.html?id=' + encodeURIComponent(product.id) + '">Quick view</a>' +
+        '<a class="shop-quick-view" href="' + detailUrl + '">Quick view</a>' +
       '</div>' +
       '<div class="shop-card-body">' +
         '<p class="shop-vendor">KarakoramStore</p>' +
-        '<h3 class="shop-card-title"><a href="product.html?id=' + encodeURIComponent(product.id) + '">' + escapeHtml(product.title) + '</a></h3>' +
+        '<h3 class="shop-card-title"><a href="' + detailUrl + '">' + escapeHtml(product.title) + '</a></h3>' +
         '<div class="shop-card-price">' +
           (showFrom ? '<span class="shop-price-prefix">From </span>' : '') +
           '<span class="shop-price-compare">' + escapeHtml(formatPKR(compare)) + '</span>' +
           '<span class="shop-price-sale">' + escapeHtml(formatPKR(defaultVariant.price)) + '</span>' +
         '</div>' +
         '<div class="shop-card-options">' + optionsBlock + '</div>' +
-        '<button type="button" class="btn shop-add-btn shop-order-btn" data-product-id="' + escapeHtml(product.id) + '" data-variant-id="' + escapeHtml(defaultVariant.id) + '">Add to cart</button>' +
+        '<button type="button" class="btn shop-add-btn shop-order-btn" data-product-id="' + escapeHtml(sourceId) + '" data-variant-id="' + escapeHtml(defaultVariant.id) + '">Add to cart</button>' +
       '</div>' +
     '</article>'
   );
@@ -518,7 +544,8 @@ function shopProductCardHTML(product) {
 function bindShopProductCards() {
   $$('.shop-card').forEach(function(card) {
     const productId = card.dataset.productId;
-    const product = PRODUCTS.find(function(p) { return p.id === productId; });
+    const sourceId = card.dataset.sourceId || productId;
+    const product = PRODUCTS.find(function(p) { return p.id === sourceId; });
     if (!product) return;
 
     const sizeSelect = card.querySelector('.shop-size-select');
@@ -549,7 +576,7 @@ function bindShopProductCards() {
     qtySelect && qtySelect.addEventListener('change', updateCard);
     orderBtn && orderBtn.addEventListener('click', function() {
       const variantId = orderBtn.getAttribute('data-variant-id') || (qtySelect ? qtySelect.value : '');
-      addToCart(product.id, variantId, 1);
+      addToCart(sourceId, variantId, 1);
       updateCartBadges();
       const original = orderBtn.textContent;
       orderBtn.textContent = 'Added';
@@ -877,10 +904,11 @@ function initHome() {
 
 /* ---------- All products / category shop ---------- */
 function initAllProducts() {
-  initShopPage(function() { return PRODUCTS.slice(); });
+  initShopPage(function() { return expandProductsForAll(PRODUCTS.slice()); });
 }
 
 function initCategory() {
+  if (document.body.dataset.page !== 'category') return;
   const slug = getParam('cat') || 'traditional-wear';
   const cat = CATEGORIES.find(function(c) { return c.slug === slug; });
   const title = $('#cat-title');
