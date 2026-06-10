@@ -173,6 +173,7 @@ function injectHeader() {
   const isAll = currentPage === 'all-products';
   const isAbout = currentPage === 'about';
   const isContact = currentPage === 'contact';
+  const isTrack = currentPage === 'track';
 
   const searchAction = isAll || currentPage === 'category'
     ? ' onsubmit="event.preventDefault();var q=this.querySelector(\'input\').value.trim();window.location.href=\'all-products.html\'+(q?\'?q=\'+encodeURIComponent(q):\'\');"'
@@ -226,6 +227,7 @@ function injectHeader() {
           <li><a href="category.html?cat=traditional-wear">Traditional Wear</a></li>
           <li><a href="category.html?cat=health-wellness">Health &amp; Wellness</a></li>
           <li${isContact ? ' class="active"' : ''}><a href="contact.html">Order / Contact</a></li>
+          <li${isTrack ? ' class="active"' : ''}><a href="track-order.html">Track Order</a></li>
           <li${isAbout ? ' class="active"' : ''}><a href="about.html">About</a></li>
         </ul>
       </div>
@@ -284,6 +286,7 @@ function injectFooter() {
             <li><a href="product.html?id=gilgiti-cap">Gilgiti Cap</a></li>
             <li><a href="product.html?id=asli-aftabi-shilajit">Asli Aftabi Shilajit</a></li>
             <li><a href="all-products.html">All Products</a></li>
+            <li><a href="track-order.html">Track Order</a></li>
           </ul>
         </div>
         <div class="contact-info">
@@ -929,6 +932,64 @@ function initShopPage(getProductList) {
   });
 }
 
+function heroProductCardHTML(item) {
+  return (
+    '<a href="' + escapeHtml(item.href) + '" class="hero-product-card">' +
+      '<img src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.alt) + '" loading="lazy">' +
+      '<div class="hero-product-card-body">' +
+        '<span class="hero-product-card-title">' + escapeHtml(item.title) + '</span>' +
+        '<span class="hero-product-card-price">' + escapeHtml(item.price) + '</span>' +
+      '</div>' +
+    '</a>'
+  );
+}
+
+function renderHeroProducts() {
+  const host = $('#hero-products');
+  if (!host || typeof PRODUCTS === 'undefined') return;
+
+  const cap = PRODUCTS.find(function(p) { return p.id === 'gilgiti-cap'; });
+  const shilajit = PRODUCTS.find(function(p) { return p.id === 'asli-aftabi-shilajit'; });
+  const items = [];
+
+  if (cap) {
+    const eldersVars = getVariantsForSize(cap, 'elders');
+    const kidsVars = getVariantsForSize(cap, 'kids');
+    const eldersMin = eldersVars.length
+      ? Math.min.apply(null, eldersVars.map(function(v) { return v.price; }))
+      : 0;
+    const kidsMin = kidsVars.length
+      ? Math.min.apply(null, kidsVars.map(function(v) { return v.price; }))
+      : 0;
+    items.push({
+      href: 'product.html?id=gilgiti-cap',
+      image: getProductImage(cap, 'elders') || cap.image,
+      alt: 'Gilgiti Cap — Elders',
+      title: 'Gilgiti Cap · Elders',
+      price: formatPKR(eldersMin)
+    });
+    items.push({
+      href: 'product.html?id=gilgiti-cap&size=kids',
+      image: getProductImage(cap, 'kids') || cap.image,
+      alt: 'Gilgiti Cap — Kids',
+      title: 'Gilgiti Cap · Kids',
+      price: formatPKR(kidsMin)
+    });
+  }
+
+  if (shilajit) {
+    items.push({
+      href: 'product.html?id=asli-aftabi-shilajit',
+      image: shilajit.image,
+      alt: 'Asli Aftabi Shilajit',
+      title: 'Asli Aftabi Shilajit',
+      price: getProductPriceDisplay(shilajit)
+    });
+  }
+
+  host.innerHTML = items.map(heroProductCardHTML).join('');
+}
+
 /* ---------- Home page ---------- */
 function initHome() {
   if (document.body.dataset.page !== 'home') return;
@@ -941,6 +1002,8 @@ function initHome() {
   if (heroWa) heroWa.href = whatsappUrl('Hi, I have a question about KarakoramStore.');
   const contactWa = $('#contact-wa-btn');
   if (contactWa) contactWa.href = whatsappUrl('Hi, I have a question about my KarakoramStore order.');
+
+  renderHeroProducts();
 
   const featuredHost = $('#featured-products');
   if (featuredHost && typeof PRODUCTS !== 'undefined') {
@@ -1107,18 +1170,57 @@ function orderSummaryLinesHTML(payload) {
   );
 }
 
-function deliveryTrackerHTML(estimate, placedAt) {
+function deliveryTrackerHTML(estimate, placedAt, currentStep) {
   const est = estimate || getDeliveryEstimateDates(placedAt);
+  const step = currentStep || 2;
+  const labels = ['Order placed', 'Processing', 'Shipped', 'Delivered'];
+  const stepsHTML = labels.map(function(label, i) {
+    const idx = i + 1;
+    let cls = '';
+    if (idx < step) cls = 'is-done';
+    else if (idx === step) cls = 'is-active';
+    return '<li class="' + cls + '"><span>' + label + '</span></li>';
+  }).join('');
   return (
     '<div class="delivery-tracker">' +
       '<p class="delivery-tracker-label">Estimated delivery: <strong>' + escapeHtml(est.label) + '</strong></p>' +
       '<p class="delivery-tracker-range">Expected by <strong>' + escapeHtml(est.range) + '</strong></p>' +
-      '<ol class="delivery-steps">' +
-        '<li class="is-done"><span>Order placed</span></li>' +
-        '<li class="is-active"><span>Processing</span></li>' +
-        '<li><span>Shipped</span></li>' +
-        '<li><span>Delivered</span></li>' +
-      '</ol>' +
+      '<ol class="delivery-steps">' + stepsHTML + '</ol>' +
+    '</div>'
+  );
+}
+
+function renderTrackOrderResult(order) {
+  const stage = typeof getOrderTrackingStage === 'function' ? getOrderTrackingStage(order) : 2;
+  const estimate = getDeliveryEstimateDates(order.placedAt);
+  const placedLabel = order.placedAt
+    ? new Date(order.placedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
+  const statusLabel = String(order.status || 'Processing').replace(/^\w/, function(c) { return c.toUpperCase(); });
+  const payload = {
+    product: order.product,
+    option: order.option,
+    subtotal: order.subtotal,
+    delivery: order.delivery,
+    total: order.total,
+    payment: order.payment
+  };
+  return (
+    '<div class="track-result-card">' +
+      '<div class="track-result-head">' +
+        '<p class="order-number">Order number<br><strong>' + escapeHtml(order.orderId) + '</strong></p>' +
+        '<span class="track-status-badge">' + escapeHtml(statusLabel) + '</span>' +
+      '</div>' +
+      '<p class="track-placed-on">Placed on <strong>' + escapeHtml(placedLabel) + '</strong></p>' +
+      '<div class="order-modal-details">' +
+        '<div class="order-summary-row"><span>Customer</span><strong>' + escapeHtml(order.name || '—') + '</strong></div>' +
+        '<div class="order-summary-row"><span>Phone</span><strong>' + escapeHtml(order.phone || '—') + '</strong></div>' +
+        '<div class="order-summary-row"><span>Address</span><strong>' + escapeHtml(order.city || '—') + '</strong></div>' +
+        orderSummaryLinesHTML(payload) +
+      '</div>' +
+      deliveryTrackerHTML(estimate, order.placedAt, stage) +
+      '<p class="track-help">Questions? <a href="' + escapeHtml(whatsappUrl('Hi, I want an update on order ' + order.orderId)) +
+        '" target="_blank" rel="noopener">WhatsApp us</a> with your order number.</p>' +
     '</div>'
   );
 }
@@ -1202,10 +1304,11 @@ function showOrderSuccessModal(payload, placedAt) {
       '<p class="order-modal-lead">Placed on ' + escapeHtml(placedLabel) + '. We will call or WhatsApp you to confirm.</p>' +
       '<div class="order-modal-details">' + orderSummaryLinesHTML(payload) + '</div>' +
       deliveryTrackerHTML(estimate, placedAt) +
-      '<p class="order-modal-note">Save your order number to track delivery. Delivery usually takes <strong>' +
+      '<p class="order-modal-note">Track anytime with your order number and phone. Delivery usually takes <strong>' +
         escapeHtml(estimate.label) + '</strong>.</p>' +
       '<div class="order-modal-actions">' +
-        '<button type="button" class="btn" id="order-modal-done">Done</button>' +
+        '<a class="btn" href="track-order.html?order=' + encodeURIComponent(payload.orderId) + '">Track your order</a>' +
+        '<button type="button" class="btn outline" id="order-modal-done">Done</button>' +
       '</div>' +
     '</div>';
   openOrderModal(html);
@@ -1483,6 +1586,80 @@ function initContact() {
   refreshOrderSummary();
 }
 
+/* ---------- Track order page ---------- */
+function initTrackOrder() {
+  if (document.body.dataset.page !== 'track') return;
+
+  const form = $('#track-form');
+  const orderInput = $('#track-order-id');
+  const phoneInput = $('#track-phone');
+  const resultEl = $('#track-result');
+  const submitBtn = $('#track-submit-btn');
+
+  const prefillOrder = getParam('order');
+  if (prefillOrder && orderInput) orderInput.value = prefillOrder;
+
+  function showTrackResult(html, isError) {
+    if (!resultEl) return;
+    resultEl.hidden = false;
+    resultEl.className = 'track-result' + (isError ? ' track-result--error' : ' track-result--success');
+    resultEl.innerHTML = html;
+  }
+
+  function runLookup() {
+    const orderId = orderInput ? orderInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    if (!orderId || !phone) {
+      showTrackResult('<p class="track-error-msg">Please enter your order number and phone number.</p>', true);
+      return;
+    }
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Looking up…';
+    }
+    if (resultEl) {
+      resultEl.hidden = false;
+      resultEl.className = 'track-result';
+      resultEl.innerHTML = '<p class="track-loading">Searching for your order…</p>';
+    }
+
+    lookupOrder(orderId, phone).then(function(result) {
+      if (result && result.ok && result.order) {
+        const order = typeof mapSheetOrderToTrack === 'function' && result.via !== 'local'
+          ? mapSheetOrderToTrack(result.order)
+          : result.order;
+        showTrackResult(renderTrackOrderResult(order), false);
+      } else {
+        showTrackResult(
+          '<div class="track-error-card">' +
+            '<p class="track-error-msg">' + escapeHtml((result && result.error) || 'Order not found.') + '</p>' +
+            '<p class="field-hint">Double-check your order number (e.g. <strong>KS-20260610-143052</strong>) and the phone number you used when ordering.</p>' +
+            '<a class="btn outline" href="' + escapeHtml(whatsappUrl('Hi, I need help tracking my order ' + orderId)) +
+            '" target="_blank" rel="noopener">Contact on WhatsApp</a>' +
+          '</div>',
+          true
+        );
+      }
+    }).finally(function() {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Track order';
+      }
+    });
+  }
+
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      runLookup();
+    });
+  }
+
+  if (prefillOrder && phoneInput && phoneInput.value.trim()) {
+    runLookup();
+  }
+}
+
 
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
@@ -1494,4 +1671,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initCategory();
   initProductDetail();
   initContact();
+  initTrackOrder();
 });

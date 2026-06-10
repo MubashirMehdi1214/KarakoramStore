@@ -96,8 +96,45 @@ function dataURLToBlob(dataUrl, filename) {
   return Utilities.newBlob(bytes, mime, filename);
 }
 
+function normalizePhone_(phone) {
+  return String(phone || '').replace(/\D/g, '');
+}
+
+function phonesMatch_(stored, entered) {
+  const a = normalizePhone_(stored);
+  const b = normalizePhone_(entered);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  return a.slice(-10) === b.slice(-10);
+}
+
 function doGet(e) {
   const p = e.parameter;
+  if (p.action === 'track') {
+    const orderId = String(p.orderId || '').trim();
+    const phone = normalizePhone_(p.phone);
+    if (!orderId || !phone) {
+      return jsonOut({ ok: false, error: 'Order ID and phone are required' });
+    }
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Orders');
+    if (!sheet) return jsonOut({ ok: false, error: 'Order not found' });
+    const values = sheet.getDataRange().getValues();
+    const headers = values.shift();
+    const idIdx = headers.indexOf('Order ID');
+    const phoneIdx = headers.indexOf('Phone');
+    if (idIdx < 0 || phoneIdx < 0) {
+      return jsonOut({ ok: false, error: 'Order not found' });
+    }
+    for (var i = values.length - 1; i >= 0; i--) {
+      const row = values[i];
+      if (String(row[idIdx] || '').trim() === orderId && phonesMatch_(row[phoneIdx], phone)) {
+        const o = {};
+        headers.forEach(function(h, j) { o[h] = row[j]; });
+        return jsonOut({ ok: true, order: o });
+      }
+    }
+    return jsonOut({ ok: false, error: 'Order not found. Check your order number and phone.' });
+  }
   if (p.password !== ADMIN_PASSWORD) {
     return jsonOut({ ok: false, error: 'Unauthorized' });
   }

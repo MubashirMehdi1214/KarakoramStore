@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Your Order - KarakoramStore</title>
+  <meta name="description" content="Track your KarakoramStore order by order number and phone. Estimated delivery 3–5 business days across Pakistan.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="store-theme" data-page="track" id="top">
+
+  <div id="site-header-host"></div>
+
+  <section class="page-hero-compact">
+    <div class="max-wrap">
+      <span class="pill pill-cod">Order tracking</span>
+      <h1>Track Your Order</h1>
+      <p>Enter your order number and phone number to see delivery status. Delivery usually takes <strong>3–5 business days</strong>.</p>
+    </div>
+  </section>
+
+  <main class="page-content track-page">
+    <div class="track-grid store-container">
+      <form class="contact-form track-form" id="track-form">
+        <h3 class="form-heading">Look up order</h3>
+        <label for="track-order-id">Order number</label>
+        <input type="text" id="track-order-id" name="orderId" placeholder="e.g. KS-20260610-143052" required autocomplete="off">
+
+        <label for="track-phone">Phone number (used when ordering)</label>
+        <input type="tel" id="track-phone" name="phone" placeholder="03115189291" required>
+
+        <button type="submit" class="btn" id="track-submit-btn">Track order</button>
+        <p class="field-hint">Your order number was shown after you placed the order. Use the same phone number you entered on the order form.</p>
+      </form>
+
+      <div id="track-result" class="track-result" hidden aria-live="polite"></div>
+    </div>
+  </main>
+
+  <div id="site-footer-host"></div>
+
+  <script src="js/site.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/orders-api.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

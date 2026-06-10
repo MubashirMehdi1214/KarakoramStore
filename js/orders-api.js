@@ -265,6 +265,18 @@ function submitOrder(payload, screenshotFile) {
   });
 }
 
+function normalizeOrderPhone(phone) {
+  return String(phone || '').replace(/\D/g, '');
+}
+
+function phonesMatch(stored, entered) {
+  const a = normalizeOrderPhone(stored);
+  const b = normalizeOrderPhone(entered);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  return a.slice(-10) === b.slice(-10);
+}
+
 function saveOrderToHistory(orderData) {
   try {
     const key = 'ks_orders_v1';
@@ -272,6 +284,82 @@ function saveOrderToHistory(orderData) {
     orders.unshift(orderData);
     localStorage.setItem(key, JSON.stringify(orders.slice(0, 20)));
   } catch (err) { /* ignore */ }
+}
+
+function getLocalOrder(orderId, phone) {
+  try {
+    const id = String(orderId || '').trim().toUpperCase();
+    const orders = JSON.parse(localStorage.getItem('ks_orders_v1') || '[]');
+    return orders.find(function(o) {
+      if (!o.orderId || o.orderId.toUpperCase() !== id) return false;
+      return !phone || phonesMatch(o.phone, phone);
+    }) || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function mapSheetOrderToTrack(row) {
+  const dateVal = row['Date'] || row.date;
+  const placedAt = dateVal ? new Date(dateVal).toISOString() : null;
+  return {
+    orderId: row['Order ID'] || row.orderId || '',
+    product: row['Product'] || row.product || '',
+    option: row['Option'] || row.option || '',
+    subtotal: row['Subtotal (PKR)'] || row.subtotal || row['Price (PKR)'] || '',
+    delivery: row['Delivery (PKR)'] || row.delivery || '',
+    total: row['Total (PKR)'] || row.total || row['Price (PKR)'] || '',
+    payment: row['Payment'] || row.payment || '',
+    name: row['Customer Name'] || row.name || '',
+    phone: row['Phone'] || row.phone || '',
+    city: row['City / Address'] || row.city || '',
+    deliveryEstimate: row['Est. Delivery'] || row.deliveryEstimate || '3–5 business days',
+    status: row['Status'] || row.status || 'New',
+    placedAt: placedAt
+  };
+}
+
+function fetchOrderTrack(orderId, phone) {
+  const s = typeof SITE !== 'undefined' ? SITE : {};
+  if (!s.orderApiUrl || s.orderApiUrl.indexOf('script.google.com') === -1) {
+    return Promise.resolve(null);
+  }
+  const url = s.orderApiUrl + '?action=track&orderId=' + encodeURIComponent(orderId) +
+    '&phone=' + encodeURIComponent(phone);
+  return fetch(url)
+    .then(function(res) { return res.json(); })
+    .catch(function() { return { ok: false, error: 'Could not reach order server' }; });
+}
+
+function lookupOrder(orderId, phone) {
+  const local = getLocalOrder(orderId, phone);
+  return fetchOrderTrack(orderId, phone).then(function(result) {
+    if (result && result.ok && result.order) return result;
+    if (local && phonesMatch(local.phone, phone)) {
+      return { ok: true, order: local, via: 'local' };
+    }
+    if (result && result.ok === false) return result;
+    return {
+      ok: false,
+      error: 'Order not found. Check your order number and phone, or contact us on WhatsApp.'
+    };
+  });
+}
+
+function getOrderTrackingStage(order) {
+  const status = String(order.status || '').toLowerCase();
+  if (status.indexOf('deliver') !== -1) return 4;
+  if (status.indexOf('ship') !== -1) return 3;
+  const placedAt = order.placedAt ? new Date(order.placedAt) : null;
+  if (!placedAt || isNaN(placedAt.getTime())) return 2;
+  const days = Math.floor((Date.now() - placedAt.getTime()) / 86400000);
+  const s = typeof SITE !== 'undefined' ? SITE : {};
+  const minDays = Number(s.deliveryDaysMin) || 3;
+  const maxDays = Number(s.deliveryDaysMax) || 5;
+  if (days >= maxDays) return 4;
+  if (days >= minDays) return 3;
+  if (days >= 1) return 2;
+  return 2;
 }
 
 function fetchOrders(adminPassword) {
