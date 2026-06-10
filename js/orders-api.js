@@ -1,5 +1,49 @@
 /* Send orders — Web3Forms / Google Apps Script / FormSubmit (redirect) */
 
+function getDeliveryChargePKR() {
+  const s = typeof SITE !== 'undefined' ? SITE : {};
+  return Number(s.deliveryChargePKR) || 250;
+}
+
+function generateOrderId() {
+  const d = new Date();
+  const pad = function(n) { return String(n).padStart(2, '0'); };
+  return 'KS-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' +
+    pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+}
+
+function getDeliveryEstimateDates(fromDate) {
+  const s = typeof SITE !== 'undefined' ? SITE : {};
+  const minDays = Number(s.deliveryDaysMin) || 3;
+  const maxDays = Number(s.deliveryDaysMax) || 5;
+  const orderDate = fromDate ? new Date(fromDate) : new Date();
+  const minDate = new Date(orderDate);
+  minDate.setDate(minDate.getDate() + minDays);
+  const maxDate = new Date(orderDate);
+  maxDate.setDate(maxDate.getDate() + maxDays);
+  const fmt = function(d) {
+    return d.toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+  return {
+    minDays: minDays,
+    maxDays: maxDays,
+    label: minDays + '–' + maxDays + ' business days',
+    range: fmt(minDate) + ' – ' + fmt(maxDate),
+    minDate: minDate,
+    maxDate: maxDate
+  };
+}
+
+function calculateOrderTotals(subtotalNum) {
+  const subtotal = Math.max(0, Number(subtotalNum) || 0);
+  const delivery = subtotal > 0 ? getDeliveryChargePKR() : 0;
+  return {
+    subtotal: subtotal,
+    delivery: delivery,
+    total: subtotal + delivery
+  };
+}
+
 function buildOrderPayload(form) {
   const product = PRODUCTS.find(function(p) { return p.id === form.productId; });
   const variant = product ? getVariant(product, form.variantId) : null;
@@ -8,10 +52,22 @@ function buildOrderPayload(form) {
     easypaisa: 'Easypaisa',
     jazzcash: 'JazzCash'
   };
+  const priceNum = variant ? Number(variant.price) : 0;
+  const totals = calculateOrderTotals(priceNum);
+  const estimate = getDeliveryEstimateDates();
   return {
+    orderId: form.orderId || generateOrderId(),
     product: product ? product.title : form.productId,
     option: product && variant ? getVariantLabel(product, variant) : form.variantId,
     price: variant ? formatPKR(variant.price) : '',
+    subtotal: formatPKR(totals.subtotal),
+    delivery: formatPKR(totals.delivery),
+    total: formatPKR(totals.total),
+    subtotalNum: totals.subtotal,
+    deliveryNum: totals.delivery,
+    totalNum: totals.total,
+    deliveryEstimate: estimate.label,
+    deliveryRange: estimate.range,
     payment: paymentLabels[form.paymentMethod] || form.paymentMethod || 'Cash on Delivery',
     paymentMethod: form.paymentMethod || 'cod',
     transactionId: form.transactionId || '',
@@ -27,11 +83,16 @@ function formatOrderEmailBody(p) {
   const lines = [
     'New order — KarakoramStore',
     '',
+    'Order ID: ' + (p.orderId || ''),
     'Product: ' + p.product,
     'Option: ' + p.option,
-    'Price: ' + p.price,
-    'Payment: ' + p.payment
+    'Subtotal: ' + (p.subtotal || p.price),
+    'Delivery: ' + (p.delivery || formatPKR(getDeliveryChargePKR())),
+    'Total: ' + (p.total || p.price),
+    'Payment: ' + p.payment,
+    'Estimated delivery: ' + (p.deliveryEstimate || '3–5 business days')
   ];
+  if (p.deliveryRange) lines.push('Expected by: ' + p.deliveryRange);
   if (p.transactionId) lines.push('Transaction ID: ' + p.transactionId);
   lines.push(
     '',
@@ -60,7 +121,7 @@ function submitViaWeb3Forms(payload, screenshotFile) {
 
   const body = {
     access_key: key,
-    subject: 'New Order — KarakoramStore — ' + payload.payment,
+    subject: '[KarakoramStore] Order ' + (payload.orderId || '') + ' — ' + payload.payment,
     from_name: payload.name,
     email: payload.email || 'order@karakoramstore.local',
     phone: payload.phone,
@@ -75,7 +136,7 @@ function submitViaWeb3Forms(payload, screenshotFile) {
     })
       .then(function(res) { return res.json(); })
       .then(function(data) {
-        if (data.success) return { ok: true, orderId: 'email', via: 'web3forms' };
+        if (data.success) return { ok: true, orderId: payload.orderId, via: 'web3forms' };
         return { ok: false, error: data.message || 'Email send failed' };
       });
   };
@@ -114,7 +175,7 @@ function postToGoogleScript(payload, url) {
   })
     .then(function(res) { return res.json(); })
     .then(function(data) {
-      if (data.ok) return { ok: true, orderId: data.orderId, via: 'google' };
+      if (data.ok) return { ok: true, orderId: data.orderId || payload.orderId, via: 'google' };
       return { ok: false, error: data.error || 'Server error' };
     })
     .catch(function(err) {
@@ -137,6 +198,24 @@ function redirectViaFormSubmit(payload, screenshotFile) {
   const notifyEmail = s.orderNotifyEmail || 'munashirmehdi@gmail.com';
   const returnUrl = window.location.href.split('?')[0] + '?order=sent';
 
+  try {
+    sessionStorage.setItem('ks_pending_order', JSON.stringify({
+      orderId: payload.orderId,
+      product: payload.product,
+      option: payload.option,
+      subtotal: payload.subtotal,
+      delivery: payload.delivery,
+      total: payload.total,
+      payment: payload.payment,
+      name: payload.name,
+      phone: payload.phone,
+      city: payload.city,
+      deliveryEstimate: payload.deliveryEstimate,
+      deliveryRange: payload.deliveryRange,
+      placedAt: new Date().toISOString()
+    }));
+  } catch (err) { /* ignore */ }
+
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = 'https://formsubmit.co/' + notifyEmail;
@@ -146,7 +225,7 @@ function redirectViaFormSubmit(payload, screenshotFile) {
   appendHiddenField(form, 'name', payload.name);
   appendHiddenField(form, 'email', payload.email || 'order@karakoramstore.local');
   appendHiddenField(form, 'phone', payload.phone);
-  appendHiddenField(form, '_subject', 'New Order — KarakoramStore — ' + payload.payment);
+  appendHiddenField(form, '_subject', '[KarakoramStore] Order ' + payload.orderId + ' — ' + payload.payment);
   appendHiddenField(form, 'message', formatOrderEmailBody(payload));
   appendHiddenField(form, '_template', 'table');
   appendHiddenField(form, '_captcha', 'false');
@@ -168,7 +247,7 @@ function redirectViaFormSubmit(payload, screenshotFile) {
 
   document.body.appendChild(form);
   form.submit();
-  return Promise.resolve({ ok: true, redirecting: true, via: 'formsubmit' });
+  return Promise.resolve({ ok: true, redirecting: true, orderId: payload.orderId, via: 'formsubmit' });
 }
 
 function submitOrder(payload, screenshotFile) {
@@ -184,6 +263,15 @@ function submitOrder(payload, screenshotFile) {
     if (googleResult && googleResult.ok === false) return googleResult;
     return redirectViaFormSubmit(payload, screenshotFile);
   });
+}
+
+function saveOrderToHistory(orderData) {
+  try {
+    const key = 'ks_orders_v1';
+    const orders = JSON.parse(localStorage.getItem(key) || '[]');
+    orders.unshift(orderData);
+    localStorage.setItem(key, JSON.stringify(orders.slice(0, 20)));
+  } catch (err) { /* ignore */ }
 }
 
 function fetchOrders(adminPassword) {

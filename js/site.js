@@ -9,6 +9,9 @@ const SITE = {
   location: "Gilgit-Baltistan, Pakistan",
   codLabel: "Cash on Delivery",
   codNote: "Pay when your order arrives — available across Pakistan.",
+  deliveryChargePKR: 250,
+  deliveryDaysMin: 3,
+  deliveryDaysMax: 5,
 
   /* Order notifications — see SETUP-ORDERS.md */
   orderNotifyEmail: "munashirmehdi@gmail.com",

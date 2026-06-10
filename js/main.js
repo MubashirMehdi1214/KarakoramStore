@@ -636,6 +636,17 @@ function getCatalogMaxPrice() {
   return Math.max.apply(null, PRODUCTS.map(function(p) { return getProductMaxPrice(p); }));
 }
 
+function getDeliveryChargePKR() {
+  const s = typeof SITE !== 'undefined' ? SITE : {};
+  return Number(s.deliveryChargePKR) || 250;
+}
+
+function calculateOrderTotals(subtotalNum) {
+  const subtotal = Math.max(0, Number(subtotalNum) || 0);
+  const delivery = subtotal > 0 ? getDeliveryChargePKR() : 0;
+  return { subtotal: subtotal, delivery: delivery, total: subtotal + delivery };
+}
+
 function getCartLine(item) {
   const product = PRODUCTS.find(function(p) { return p.id === item.productId; });
   if (!product) return null;
@@ -673,7 +684,9 @@ function renderCartDrawer() {
     return;
   }
 
-  const total = lines.reduce(function(sum, l) { return sum + l.lineTotal; }, 0);
+  const subtotal = lines.reduce(function(sum, l) { return sum + l.lineTotal; }, 0);
+  const delivery = subtotal > 0 ? getDeliveryChargePKR() : 0;
+  const grandTotal = subtotal + delivery;
   itemsEl.innerHTML = lines.map(function(l) {
     return (
       '<div class="cart-item" data-key="' + escapeHtml(l.key) + '">' +
@@ -690,7 +703,10 @@ function renderCartDrawer() {
       '</div>'
     );
   }).join('');
-  totalEl.textContent = 'Total: ' + formatPKR(total);
+  totalEl.innerHTML =
+    '<div class="cart-summary-line"><span>Subtotal</span><span>' + escapeHtml(formatPKR(subtotal)) + '</span></div>' +
+    '<div class="cart-summary-line"><span>Delivery</span><span>' + escapeHtml(formatPKR(delivery)) + '</span></div>' +
+    '<p class="cart-total">Total: ' + escapeHtml(formatPKR(grandTotal)) + '</p>';
 }
 
 function openCartDrawer() {
@@ -1079,6 +1095,175 @@ function initProductDetail() {
   });
 }
 
+/* ---------- Order modal & summary ---------- */
+function orderSummaryLinesHTML(payload) {
+  return (
+    '<div class="order-summary-row"><span>Product</span><strong>' + escapeHtml(payload.product) + '</strong></div>' +
+    '<div class="order-summary-row"><span>Option</span><strong>' + escapeHtml(payload.option) + '</strong></div>' +
+    '<div class="order-summary-row"><span>Subtotal</span><strong>' + escapeHtml(payload.subtotal || payload.price) + '</strong></div>' +
+    '<div class="order-summary-row"><span>Delivery</span><strong>' + escapeHtml(payload.delivery || formatPKR(getDeliveryChargePKR())) + '</strong></div>' +
+    '<div class="order-summary-row order-summary-total"><span>Total</span><strong>' + escapeHtml(payload.total || payload.price) + '</strong></div>' +
+    '<div class="order-summary-row"><span>Payment</span><strong>' + escapeHtml(payload.payment) + '</strong></div>'
+  );
+}
+
+function deliveryTrackerHTML(estimate, placedAt) {
+  const est = estimate || getDeliveryEstimateDates(placedAt);
+  return (
+    '<div class="delivery-tracker">' +
+      '<p class="delivery-tracker-label">Estimated delivery: <strong>' + escapeHtml(est.label) + '</strong></p>' +
+      '<p class="delivery-tracker-range">Expected by <strong>' + escapeHtml(est.range) + '</strong></p>' +
+      '<ol class="delivery-steps">' +
+        '<li class="is-done"><span>Order placed</span></li>' +
+        '<li class="is-active"><span>Processing</span></li>' +
+        '<li><span>Shipped</span></li>' +
+        '<li><span>Delivered</span></li>' +
+      '</ol>' +
+    '</div>'
+  );
+}
+
+function closeOrderModal() {
+  const modal = $('#order-modal');
+  if (!modal) return;
+  modal.hidden = true;
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('order-modal-open');
+  const submitBtn = $('#submit-order-btn');
+  if (submitBtn && submitBtn.textContent.indexOf('Sending') === -1) {
+    submitBtn.disabled = false;
+  }
+}
+
+function openOrderModal(html) {
+  const modal = $('#order-modal');
+  const body = $('#order-modal-body');
+  if (!modal || !body) return;
+  body.innerHTML = html;
+  modal.hidden = false;
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('order-modal-open');
+}
+
+function bindOrderModalClose() {
+  const backdrop = $('#order-modal-backdrop');
+  const closeBtn = $('#order-modal-close');
+  backdrop && backdrop.addEventListener('click', closeOrderModal);
+  closeBtn && closeBtn.addEventListener('click', closeOrderModal);
+}
+
+function showOrderConfirmModal(payload, onConfirm) {
+  const estimate = getDeliveryEstimateDates();
+  const html =
+    '<div class="order-modal-confirm">' +
+      '<div class="order-modal-icon" aria-hidden="true">&#128230;</div>' +
+      '<h3 id="order-modal-title">Confirm your order</h3>' +
+      '<p class="order-modal-lead">Please review your details before submitting.</p>' +
+      '<div class="order-modal-details">' +
+        '<div class="order-summary-row"><span>Name</span><strong>' + escapeHtml(payload.name) + '</strong></div>' +
+        '<div class="order-summary-row"><span>Phone</span><strong>' + escapeHtml(payload.phone) + '</strong></div>' +
+        '<div class="order-summary-row"><span>Address</span><strong>' + escapeHtml(payload.city) + '</strong></div>' +
+        orderSummaryLinesHTML(payload) +
+      '</div>' +
+      deliveryTrackerHTML(estimate) +
+      '<div class="order-modal-actions">' +
+        '<button type="button" class="btn outline" id="order-modal-cancel">Edit details</button>' +
+        '<button type="button" class="btn" id="order-modal-confirm">Confirm order</button>' +
+      '</div>' +
+    '</div>';
+  openOrderModal(html);
+  const cancelBtn = $('#order-modal-cancel');
+  const confirmBtn = $('#order-modal-confirm');
+  cancelBtn && cancelBtn.addEventListener('click', function() {
+    closeOrderModal();
+    const submitBtn = $('#submit-order-btn');
+    if (submitBtn) submitBtn.disabled = false;
+  });
+  confirmBtn && confirmBtn.addEventListener('click', function() {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Placing order…';
+    onConfirm(function onDone() {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm order';
+    });
+  });
+}
+
+function showOrderSuccessModal(payload, placedAt) {
+  const estimate = getDeliveryEstimateDates(placedAt);
+  const placedLabel = placedAt
+    ? new Date(placedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })
+    : new Date().toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
+  const html =
+    '<div class="order-modal-success">' +
+      '<div class="order-modal-icon order-modal-icon--success" aria-hidden="true">&#10003;</div>' +
+      '<h3 id="order-modal-title">Order confirmed!</h3>' +
+      '<p class="order-number">Order number<br><strong>' + escapeHtml(payload.orderId) + '</strong></p>' +
+      '<p class="order-modal-lead">Placed on ' + escapeHtml(placedLabel) + '. We will call or WhatsApp you to confirm.</p>' +
+      '<div class="order-modal-details">' + orderSummaryLinesHTML(payload) + '</div>' +
+      deliveryTrackerHTML(estimate, placedAt) +
+      '<p class="order-modal-note">Save your order number to track delivery. Delivery usually takes <strong>' +
+        escapeHtml(estimate.label) + '</strong>.</p>' +
+      '<div class="order-modal-actions">' +
+        '<button type="button" class="btn" id="order-modal-done">Done</button>' +
+      '</div>' +
+    '</div>';
+  openOrderModal(html);
+  const doneBtn = $('#order-modal-done');
+  doneBtn && doneBtn.addEventListener('click', closeOrderModal);
+}
+
+function updateContactOrderSummary(product, variant) {
+  const box = $('#order-summary-box');
+  const lines = $('#order-summary-lines');
+  const estEl = $('#order-delivery-estimate');
+  if (!box || !lines) return;
+  if (!product || !variant) {
+    box.hidden = true;
+    return;
+  }
+  const totals = calculateOrderTotals(variant.price);
+  const estimate = getDeliveryEstimateDates();
+  if (estEl) estEl.textContent = estimate.label;
+  lines.innerHTML =
+    '<div class="order-summary-row"><span>Product</span><strong>' + escapeHtml(product.title) + '</strong></div>' +
+    '<div class="order-summary-row"><span>Option</span><strong>' + escapeHtml(getVariantLabel(product, variant)) + '</strong></div>' +
+    '<div class="order-summary-row"><span>Subtotal</span><strong>' + escapeHtml(formatPKR(totals.subtotal)) + '</strong></div>' +
+    '<div class="order-summary-row"><span>Delivery</span><strong>' + escapeHtml(formatPKR(totals.delivery)) + '</strong></div>' +
+    '<div class="order-summary-row order-summary-total"><span>Total</span><strong>' + escapeHtml(formatPKR(totals.total)) + '</strong></div>';
+  box.hidden = false;
+}
+
+function handleOrderSubmitSuccess(payload, result, form, statusEl) {
+  const placedAt = new Date().toISOString();
+  saveOrderToHistory({
+    orderId: payload.orderId,
+    product: payload.product,
+    option: payload.option,
+    total: payload.total,
+    payment: payload.payment,
+    name: payload.name,
+    phone: payload.phone,
+    city: payload.city,
+    deliveryEstimate: payload.deliveryEstimate,
+    deliveryRange: payload.deliveryRange,
+    placedAt: placedAt,
+    status: 'processing'
+  });
+  saveCartItems([]);
+  updateCartBadges();
+  showOrderSuccessModal(payload, placedAt);
+  if (statusEl) {
+    statusEl.innerHTML = '<span class="order-success">Order <strong>' + escapeHtml(payload.orderId) +
+      '</strong> confirmed. Estimated delivery: <strong>' + escapeHtml(payload.deliveryEstimate) + '</strong>.</span>';
+  }
+  if (form) {
+    form.reset();
+    const codRadio = document.querySelector('input[name="payment"][value="cod"]');
+    if (codRadio) codRadio.checked = true;
+  }
+}
+
 /* ---------- Contact / order page ---------- */
 function initContact() {
   if (document.body.dataset.page !== 'contact') return;
@@ -1114,6 +1299,15 @@ function initContact() {
     variantSelect.innerHTML = product.variants.map(function(v) {
       return '<option value="' + escapeHtml(v.id) + '">' + escapeHtml(getVariantLabel(product, v)) + ' — ' + escapeHtml(formatPKR(v.price)) + '</option>';
     }).join('');
+    refreshOrderSummary();
+  }
+
+  function refreshOrderSummary() {
+    const pid = productSelect ? productSelect.value : '';
+    const product = PRODUCTS.find(function(p) { return p.id === pid; });
+    const vid = variantSelect ? variantSelect.value : '';
+    const variant = product ? getVariant(product, vid) : null;
+    updateContactOrderSummary(product, variant);
   }
 
   function getSelectedPayment() {
@@ -1143,11 +1337,16 @@ function initContact() {
   });
   updatePaymentUI();
 
+  bindOrderModalClose();
+
   if (productSelect) {
     productSelect.addEventListener('change', function() {
       const product = PRODUCTS.find(function(p) { return p.id === productSelect.value; });
       fillVariants(product);
     });
+  }
+  if (variantSelect) {
+    variantSelect.addEventListener('change', refreshOrderSummary);
   }
 
   if (productSelect && productId) {
@@ -1164,11 +1363,23 @@ function initContact() {
   }
 
   const statusElOnLoad = $('#order-status');
-  if (getParam('order') === 'sent' && statusElOnLoad) {
-    statusElOnLoad.innerHTML =
-      '<span class="order-success"><strong>Order sent!</strong> We will call or WhatsApp you to confirm.' +
-      ' Check <strong>munashirmehdi@gmail.com</strong> (and spam) for the order email.' +
-      ' First time only: if FormSubmit emailed you an activation link, click it so future orders arrive.</span>';
+  if (getParam('order') === 'sent') {
+    let pending = null;
+    try {
+      pending = JSON.parse(sessionStorage.getItem('ks_pending_order') || 'null');
+      sessionStorage.removeItem('ks_pending_order');
+    } catch (err) { /* ignore */ }
+    if (pending && pending.orderId) {
+      saveOrderToHistory(Object.assign({ status: 'processing' }, pending));
+      showOrderSuccessModal(pending, pending.placedAt);
+      if (statusElOnLoad) {
+        statusElOnLoad.innerHTML = '<span class="order-success">Order <strong>' + escapeHtml(pending.orderId) +
+          '</strong> sent. Estimated delivery: <strong>' + escapeHtml(pending.deliveryEstimate || '3–5 business days') + '</strong>.</span>';
+      }
+    } else if (statusElOnLoad) {
+      statusElOnLoad.innerHTML =
+        '<span class="order-success"><strong>Order sent!</strong> We will call or WhatsApp you to confirm.</span>';
+    }
     if (window.history && window.history.replaceState) {
       window.history.replaceState({}, '', window.location.pathname);
     }
@@ -1218,6 +1429,7 @@ function initContact() {
       }
 
       const payload = buildOrderPayload({
+        orderId: generateOrderId(),
         productId: pid,
         variantId: vid,
         paymentMethod: paymentMethod,
@@ -1234,46 +1446,41 @@ function initContact() {
 
       const btn = $('#submit-order-btn');
       const statusEl = $('#order-status');
-      if (btn) { btn.disabled = true; btn.textContent = 'Sending order…'; }
-      if (statusEl) statusEl.textContent = '';
 
-      submitOrder(payload, screenshotFile).then(function(result) {
-        if (result && result.redirecting) {
-          if (statusEl) statusEl.textContent = 'Sending your order — please wait…';
-          return;
-        }
-        if (result && result.ok) {
-          var msg = 'Order sent! We will call or WhatsApp you to confirm.';
-          if (result.via === 'web3forms' || result.via === 'google') {
-            msg += ' A copy was emailed to <strong>munashirmehdi@gmail.com</strong>.';
+      showOrderConfirmModal(payload, function submitConfirmed(resetConfirmBtn) {
+        if (btn) { btn.disabled = true; btn.textContent = 'Sending order…'; }
+        if (statusEl) statusEl.textContent = '';
+
+        submitOrder(payload, screenshotFile).then(function(result) {
+          if (result && result.redirecting) {
+            closeOrderModal();
+            if (statusEl) statusEl.textContent = 'Sending your order — please wait…';
+            return;
           }
-          var waExtra = '';
-          if (typeof formatOrderEmailBody === 'function') {
-            const waText = encodeURIComponent(formatOrderEmailBody(payload));
-            waExtra = ' <a class="btn outline" style="margin-top:12px;display:inline-block" href="https://wa.me/' +
-              escapeHtml(s.whatsapp) + '?text=' + waText + '" target="_blank" rel="noopener">Also send order on WhatsApp</a>';
+          if (result && result.ok) {
+            closeOrderModal();
+            if (result.orderId) payload.orderId = result.orderId;
+            handleOrderSubmitSuccess(payload, result, form, statusEl);
+            refreshOrderSummary();
+            updatePaymentUI();
+          } else if (result) {
+            if (statusEl) {
+              statusEl.innerHTML = '<span class="order-error">Could not send order: ' +
+                escapeHtml(result.error || 'Please try again or WhatsApp us below.') + '</span>';
+            }
           }
-          if (statusEl) {
-            statusEl.innerHTML = '<span class="order-success">' + msg +
-              (result.orderId && result.orderId !== 'email' ? ' Ref: <strong>' + escapeHtml(result.orderId) + '</strong>' : '') +
-              '</span>' + waExtra;
+        }).finally(function() {
+          if (btn && !document.hidden) {
+            btn.disabled = false;
+            updatePaymentUI();
           }
-          form.reset();
-          document.querySelector('input[name="payment"][value="cod"]').checked = true;
-          updatePaymentUI();
-        } else if (result) {
-          if (statusEl) {
-            statusEl.innerHTML = '<span class="order-error">Could not send order: ' + escapeHtml(result.error || 'Please try again or WhatsApp us below.') + '</span>';
-          }
-        }
-      }).finally(function() {
-        if (btn && !document.hidden) {
-          btn.disabled = false;
-          updatePaymentUI();
-        }
+          if (resetConfirmBtn) resetConfirmBtn();
+        });
       });
     });
   }
+
+  refreshOrderSummary();
 }
 
 

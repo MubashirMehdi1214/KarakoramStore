@@ -14,8 +14,9 @@ function setupSheet() {
   let sheet = ss.getSheetByName('Orders');
   if (!sheet) sheet = ss.insertSheet('Orders');
   const headers = [
-    'Date', 'Order ID', 'Product', 'Option', 'Price (PKR)', 'Payment', 'Transaction ID',
-    'Customer Name', 'Phone', 'City / Address', 'Email', 'Notes', 'Screenshot', 'Status'
+    'Date', 'Order ID', 'Product', 'Option', 'Subtotal (PKR)', 'Delivery (PKR)', 'Total (PKR)',
+    'Payment', 'Transaction ID', 'Customer Name', 'Phone', 'City / Address', 'Email', 'Notes',
+    'Est. Delivery', 'Screenshot', 'Status'
   ];
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(headers);
@@ -34,7 +35,9 @@ function doPost(e) {
       orderId,
       data.product || '',
       data.option || '',
-      data.price || '',
+      data.subtotal || data.price || '',
+      data.delivery || 'PKR 250',
+      data.total || data.price || '',
       data.payment || 'Cash on Delivery',
       data.transactionId || '',
       data.name || '',
@@ -42,6 +45,7 @@ function doPost(e) {
       data.city || '',
       data.email || '',
       data.notes || '',
+      data.deliveryEstimate || '3–5 business days',
       data.screenshotName ? 'Yes: ' + data.screenshotName : '',
       'New'
     ]);
@@ -51,8 +55,11 @@ function doPost(e) {
       'Order ID: ' + orderId + '\n' +
       'Product: ' + (data.product || '') + '\n' +
       'Option: ' + (data.option || '') + '\n' +
-      'Price: ' + (data.price || '') + '\n' +
-      'Payment: ' + (data.payment || '') + '\n';
+      'Subtotal: ' + (data.subtotal || data.price || '') + '\n' +
+      'Delivery: ' + (data.delivery || 'PKR 250') + '\n' +
+      'Total: ' + (data.total || data.price || '') + '\n' +
+      'Payment: ' + (data.payment || '') + '\n' +
+      'Estimated delivery: ' + (data.deliveryEstimate || '3–5 business days') + '\n';
     if (data.transactionId) body += 'Transaction ID: ' + data.transactionId + '\n';
     body +=
       '\nCustomer: ' + (data.name || '') + '\n' +
