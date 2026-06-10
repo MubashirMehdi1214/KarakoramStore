@@ -175,13 +175,14 @@ function injectHeader() {
   const isContact = currentPage === 'contact';
 
   const searchAction = isAll || currentPage === 'category'
-    ? ' onsubmit="event.preventDefault();var q=document.getElementById(\'header-search\').value.trim();window.location.href=\'all-products.html\'+(q?\'?q=\'+encodeURIComponent(q):\'\');"'
+    ? ' onsubmit="event.preventDefault();var q=this.querySelector(\'input\').value.trim();window.location.href=\'all-products.html\'+(q?\'?q=\'+encodeURIComponent(q):\'\');"'
     : ' action="all-products.html" method="get"';
 
   headerHost.innerHTML = `
     <div class="store-topbar">
       <span><strong>${escapeHtml(s.codLabel)}</strong> — Pay when you receive your order · Authentic Gilgit-Baltistan products</span>
     </div>
+    <div class="store-header-group">
     <div class="store-header">
       <div class="store-header-inner store-container">
         <a class="store-logo" href="index.html" aria-label="KarakoramStore home">
@@ -198,23 +199,26 @@ function injectHeader() {
           <button class="store-header-link store-header-cart-btn" id="cartOpenBtn" type="button">Cart <span class="cart-count" id="cartCount">0</span></button>
           <a class="store-header-link store-header-wa" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp</a>
         </div>
-        <button class="menu-toggle store-menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
-      </div>
-      <div class="store-header-mobile store-container">
-        <form class="store-header-search store-header-search--mobile"${searchAction} role="search">
-          <input type="search" name="q" id="header-search-mobile" placeholder="Search products…" aria-label="Search">
-          <button type="submit" aria-label="Search">&#128269;</button>
-        </form>
-        <div class="store-header-mobile-actions">
-          <a class="store-mobile-chip" href="tel:${escapeHtml(s.phoneTel)}">Call</a>
-          <a class="store-mobile-chip" href="contact.html">Order</a>
-          <button class="store-mobile-chip store-mobile-chip--cart" id="cartOpenBtnMobile" type="button">Cart <span class="cart-count" id="cartCountMobile">0</span></button>
-          <a class="store-mobile-chip store-mobile-chip--wa" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp</a>
-        </div>
+        <button class="menu-toggle store-menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">
+          <span class="store-menu-toggle-icon" aria-hidden="true">&#9776;</span>
+          <span class="store-menu-toggle-label">Menu</span>
+        </button>
       </div>
     </div>
     <nav class="store-nav" id="mainNav" aria-label="Main">
       <div class="store-nav-inner store-container">
+        <div class="store-mobile-panel">
+          <form class="store-header-search store-header-search--mobile"${searchAction} role="search">
+            <input type="search" name="q" id="header-search-mobile" placeholder="Search products…" aria-label="Search">
+            <button type="submit" aria-label="Search">&#128269;</button>
+          </form>
+          <div class="store-header-mobile-actions">
+            <a class="store-mobile-chip" href="tel:${escapeHtml(s.phoneTel)}">Call</a>
+            <a class="store-mobile-chip" href="contact.html">Order</a>
+            <button class="store-mobile-chip store-mobile-chip--cart" id="cartOpenBtnMobile" type="button">Cart <span class="cart-count" id="cartCountMobile">0</span></button>
+            <a class="store-mobile-chip store-mobile-chip--wa" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp</a>
+          </div>
+        </div>
         <ul>
           <li${isAll ? ' class="active"' : ''}><a href="all-products.html">All Products</a></li>
           <li><a href="product.html?id=gilgiti-cap">Gilgiti Cap</a></li>
@@ -226,15 +230,33 @@ function injectHeader() {
         </ul>
       </div>
     </nav>
+    </div>
   `;
 
   const nav = $('#mainNav');
   const toggle = $('#menuToggle');
-  toggle && toggle.addEventListener('click', () => {
+  const closeMobileNav = () => {
+    if (!nav || !toggle) return;
+    nav.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('nav-open');
+  };
+  toggle && toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
     const open = nav.classList.toggle('is-open');
     toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     document.body.classList.toggle('nav-open', open);
   });
+  document.addEventListener('click', () => {
+    if (nav && nav.classList.contains('is-open') && window.innerWidth <= 900) closeMobileNav();
+  });
+  nav && nav.addEventListener('click', (e) => e.stopPropagation());
+  $$('#mainNav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 900) closeMobileNav();
+    });
+  });
+  $('#cartOpenBtnMobile') && $('#cartOpenBtnMobile').addEventListener('click', closeMobileNav);
   $$('#mainNav li.has-dropdown > a').forEach(a => {
     a.addEventListener('click', (e) => {
       if (window.innerWidth <= 768) {
