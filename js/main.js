@@ -1107,17 +1107,17 @@ function initProductDetail() {
       <p>${escapeHtml(s.codNote)}</p>
     </div>
 
-    <article class="article">
-      ${paragraphs}
-    </article>
-
-    <div class="order-block">
-      <p style="margin-bottom:16px;font-size:15px;">Select your option above, then place your order. We confirm by phone or WhatsApp before dispatch.</p>
+    <div class="order-block order-block--top">
+      <p class="order-block-hint">Select your option above, then place your order. We confirm by phone or WhatsApp before dispatch.</p>
       <div class="order-block-actions">
         <a class="btn" id="order-btn" href="${orderContactUrl(product, defaultVariant.id)}">Order with Cash on Delivery</a>
         <a class="btn outline" id="wa-order-btn" href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp Order</a>
       </div>
     </div>
+
+    <article class="article">
+      ${paragraphs}
+    </article>
 
     <div class="related-posts">
       <h3>Also Shop</h3>

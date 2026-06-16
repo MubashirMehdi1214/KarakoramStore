@@ -504,8 +504,22 @@ h1, h2, h3, h4, h5, h6 { color: var(--contrast); font-weight: 700; line-height: 
   border-left: 4px solid var(--accent);
   padding: 26px;
   border-radius: var(--radius);
-  margin: 36px 0;
+  margin: 24px 0 32px;
   text-align: center;
+}
+.product-single .order-block--top {
+  margin-top: 20px;
+  margin-bottom: 28px;
+  border: 2px solid var(--accent);
+  border-left: 4px solid var(--accent);
+  background: linear-gradient(180deg, #f0f7f2 0%, #fff 100%);
+  box-shadow: 0 4px 18px rgba(30, 86, 92, .1);
+}
+.order-block-hint {
+  margin: 0 0 16px;
+  font-size: 15px;
+  color: var(--contrast-3);
+  line-height: 1.5;
 }
 .product-single .order-block .btn {
   display: inline-flex;
